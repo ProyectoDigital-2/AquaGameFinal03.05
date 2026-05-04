@@ -6,6 +6,24 @@
     <title>Unity Web Player | Super Goalie Basic</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      body { margin:0; background:#000; overflow:hidden; }
+      @media (orientation:portrait) {
+        #unity-container {
+          position:fixed; top:0; left:0;
+          width:100vh; height:100vw;
+          transform:rotate(90deg);
+          transform-origin:top left;
+          margin-left:100vw;
+          overflow:hidden;
+        }
+        #unity-canvas { width:100% !important; height:100% !important; }
+      }
+      @media (orientation:landscape) {
+        #unity-container { width:100vw; height:100vh; }
+        #unity-canvas    { width:100% !important; height:100% !important; }
+      }
+    </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -128,6 +146,110 @@
 
       document.body.appendChild(script);
 
+    </script>
+
+    <script>
+    // ── AquaChampions Bridge ──────────────────────────────────────
+    const FB_URL     = "https://aquachampions2026-default-rtdb.firebaseio.com";
+    const RETURN_URL = "https://proyectodigital-2.github.io/AquaGame3D/";
+
+    const _p = new URLSearchParams(window.location.search);
+    const SESSION = {
+      key:    _p.get("key")    || null,
+      sucId:  _p.get("sucId")  || null,
+      amount: _p.get("amount") || null,
+      seq:    _p.get("seq")    || null,
+      branch: _p.get("branch") || null,
+    };
+
+    const PRIZE_LABELS = {
+      cilindro: "Cilindro AquaChampions",
+      playera:  "Playera Oficial",
+      rompe:    "Rompe Vientos",
+      hielera:  "Hielera AquaChampions",
+      balon:    "Balon AquaChampions",
+      mascara:  "Mascara AquaChampions"
+    };
+
+    function choosePrize(amount) {
+      const weights = {
+        200: { cilindro:50, hielera:30, mascara:20 },
+        300: { cilindro:25, playera:30, hielera:20, balon:15, mascara:10 },
+        500: { playera:35, rompe:30, balon:25, hielera:10 }
+      };
+      const w = weights[parseInt(amount)] || weights[200];
+      const total = Object.values(w).reduce((s,v)=>s+v, 0);
+      let r = Math.random() * total;
+      for (const [k,v] of Object.entries(w)) { r -= v; if (r<=0) return k; }
+      return Object.keys(w)[0];
+    }
+
+    async function markUsed(result, prize, ticket) {
+      if (!SESSION.key) return;
+      const path = SESSION.key.replace(/-/g,"_");
+      try {
+        await fetch(`${FB_URL}/usadas/${path}.json`, {
+          method:  "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status:"usada", result, prize, ticket,
+            sucId:  SESSION.sucId,
+            branch: SESSION.branch || "",
+            amount: SESSION.amount,
+            seq:    SESSION.seq,
+            fecha:  new Date().toLocaleString("es-MX")
+          })
+        });
+        console.log("Firebase OK:", result);
+      } catch(e) { console.error("Firebase error:", e); }
+    }
+
+    async function decrementInventory(sucId, prizeKey) {
+      const url = `${FB_URL}/inventario/suc${sucId}/${prizeKey}.json`;
+      try {
+        const res     = await fetch(url);
+        const current = await res.json();
+        if (current && current > 0) {
+          await fetch(url, {
+            method:  "PUT",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify(current - 1)
+          });
+        }
+      } catch(e) { console.error("Inventario error:", e); }
+    }
+
+    // Llamado desde Unity cuando ANOTA GOL
+    async function OnGoalScored() {
+      const prizeKey   = choosePrize(SESSION.amount);
+      const prizeLabel = PRIZE_LABELS[prizeKey] || prizeKey;
+      const ticket     = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
+      await markUsed("ganadora", prizeLabel, ticket);
+      if (SESSION.sucId) await decrementInventory(SESSION.sucId, prizeKey);
+      const params = new URLSearchParams({
+        result: "gol",
+        prize:  prizeLabel,
+        ticket: ticket,
+        key:    SESSION.key    || "",
+        branch: SESSION.branch || "",
+        amount: SESSION.amount || "",
+      });
+      window.location.href = RETURN_URL + "?" + params.toString();
+    }
+
+    // Llamado desde Unity cuando FALLA
+    async function OnGoalMissed() {
+      const ticket = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
+      await markUsed("no ganadora", "", ticket);
+      const params = new URLSearchParams({
+        result: "fallo",
+        ticket: ticket,
+        key:    SESSION.key    || "",
+        branch: SESSION.branch || "",
+        amount: SESSION.amount || "",
+      });
+      window.location.href = RETURN_URL + "?" + params.toString();
+    }
     </script>
   </body>
 </html>
