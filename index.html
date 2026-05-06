@@ -3618,9 +3618,10 @@ function closePregame() {
 function launchUnity() {
   const decoded = state.promoAccessDecoded;
   const branch  = decoded ? getBranchById(decoded.sucId) : null;
-  if (!decoded) {
-    window.location.href = "SuperGoalieWebGL/index.html";
-    return;
+if (!decoded) {
+  alert("Primero ingresa una clave válida para jugar.");
+  return;
+}
   }
   const key    = rebuildKey(decoded.sucId, decoded.amount, decoded.seq);
   const params = new URLSearchParams({
