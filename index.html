@@ -3181,7 +3181,29 @@ bracketOverlayBtn.addEventListener("click", () => {
   if (action) action();
 });
 
-startMenuBtn.addEventListener("click", () => irSuperGoalie());
+startMenuBtn.addEventListener("click", async () => {
+  // Primero validar la clave, luego abrir instrucciones
+  startMenuBtn.disabled = true;
+  startMenuBtn.textContent = "Verificando...";
+  const accessMatch = await validatePromoAccess();
+  startMenuBtn.textContent = "Entrar al juego";
+  startMenuBtn.disabled = false;
+  if (!accessMatch || accessMatch.invalid) {
+    const errMsg = accessMatch?.invalid === "used"
+      ? getUsedCodeMessage(accessMatch.branch, accessMatch.entry)
+      : "Clave inválida. Verifica que la escribiste correctamente (formato XXXX-XXX).";
+    renderPromoSummary(errMsg);
+    return;
+  }
+  const { branch, entry, decoded } = accessMatch;
+  state.promoAccessEntry  = entry;
+  state.promoAccessDecoded = decoded;
+  state.branchId          = branch.id;
+  state.rechargeAmount    = entry.amount;
+  state.promoTicket       = buildPromoTicket();
+  state.promoAward        = null;
+  irSuperGoalie();
+});
 document.getElementById("overlayBtn").addEventListener("click", () => {
   overlayEl.classList.add("hidden");
   if (isAiTurn()) {
