@@ -679,7 +679,7 @@ button{
         <div class="promo-summary" id="promoSummary"></div>
       </div>
       <div class="btns">
- <button class="primary" onclick="irSuperGoalie()">
+ <button class="primary" id="startMenuBtn" disabled>
   ⚽ Jugar versión 3D
 </button>
 
@@ -3181,7 +3181,7 @@ bracketOverlayBtn.addEventListener("click", () => {
   if (action) action();
 });
 
-startMenuBtn.addEventListener("click", () => startMatch(getMenuStartMode()));
+startMenuBtn.addEventListener("click", () => irSuperGoalie());
 document.getElementById("overlayBtn").addEventListener("click", () => {
   overlayEl.classList.add("hidden");
   if (isAiTurn()) {
@@ -3270,27 +3270,26 @@ loadInventoryFromFirebase();
   const amount = p.get("amount") || "";
 
   if (result === "gol") {
-    // Mostrar modal de premio ganado
     setTimeout(() => {
+      // Ocultar menú principal
+      const menuEl2 = document.getElementById("menu");
+      if (menuEl2) menuEl2.classList.add("hidden");
+
       const modal   = document.getElementById("prizeModal");
       const title   = document.getElementById("prizeModalTitle");
       const sub     = document.getElementById("prizeModalSub");
-      const ticketEl= document.getElementById("prizeTicket");
       const optWrap = document.getElementById("prizeOpts");
       const lbl     = document.getElementById("prizeChooseLabel");
       const btn     = document.getElementById("prizeConfirmBtn");
 
-      // Find prize key from label
       const prizeKey = Object.entries(PROMO_PRIZES).find(([k,v]) => v.label === prize)?.[0]
                     || "cilindro";
 
-      if (title)   title.textContent  = prize || "Premio AquaChampions";
-      if (sub)     sub.textContent    = `${branch} · $${amount}`;
-      if (ticketEl)ticketEl.textContent= ticket ? `Ticket: ${ticket}` : "";
-      if (lbl)     lbl.textContent    = "";
-      if (optWrap) optWrap.innerHTML  = "";
+      if (title)   title.textContent = prize || "Premio AquaChampions";
+      if (sub)     sub.textContent   = branch + " · $" + amount;
+      if (lbl)     lbl.textContent   = "";
+      if (optWrap) optWrap.innerHTML = "";
 
-      // Set image
       const img = document.getElementById("prizeModalImg");
       if (img && PRIZE_IMAGES[prizeKey]) {
         img.src = PRIZE_IMAGES[prizeKey];
@@ -3299,22 +3298,31 @@ loadInventoryFromFirebase();
 
       if (btn) {
         btn.disabled = false;
-        btn.onclick  = () => {
-          modal.classList.add("hidden");
+        btn.textContent = "Reclamar premio ▶";
+        btn.onclick = () => {
+          if (modal) modal.classList.add("hidden");
+          const endScreen = document.getElementById("endScreen");
+          const endTitle  = document.getElementById("endTitle");
+          const endText   = document.getElementById("endText");
+          const restartBtn = document.getElementById("restartBtn");
+          if (restartBtn) restartBtn.classList.add("hidden");
+          if (endTitle) endTitle.textContent = "¡Gol con premio!";
+          if (endText)  endText.textContent  =
+            "Ganaste " + prize + ". Ticket " + ticket + ". Presenta tu clave " + key.toUpperCase() + " en sucursal para recoger tu premio.";
+          if (endScreen) endScreen.classList.remove("hidden");
         };
       }
       if (modal) modal.classList.remove("hidden");
     }, 500);
 
   } else if (result === "fallo") {
-    // Mostrar mensaje de fallo
     setTimeout(() => {
       const endScreen = document.getElementById("endScreen");
       const endTitle  = document.getElementById("endTitle");
       const endText   = document.getElementById("endText");
-      if (endTitle) endTitle.textContent = "La fallaste";
+      if (endTitle) endTitle.textContent = "¡Buen tiro!";
       if (endText)  endText.textContent  =
-        `Sigue participando. Clave ${key} registrada. Ticket: ${ticket}`;
+        "Sigue participando. Ticket: " + ticket + ". Clave " + key.toUpperCase() + " registrada.";
       if (endScreen) endScreen.classList.remove("hidden");
       const menuEl = document.getElementById("menu");
       if (menuEl) menuEl.classList.add("hidden");
@@ -3618,10 +3626,9 @@ function closePregame() {
 function launchUnity() {
   const decoded = state.promoAccessDecoded;
   const branch  = decoded ? getBranchById(decoded.sucId) : null;
-if (!decoded) {
-  alert("Primero ingresa una clave válida para jugar.");
-  return;
-}
+  if (!decoded) {
+    alert("Primero ingresa una clave válida para jugar.");
+    return;
   }
   const key    = rebuildKey(decoded.sucId, decoded.amount, decoded.seq);
   const params = new URLSearchParams({
