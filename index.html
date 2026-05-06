@@ -3630,7 +3630,14 @@ function launchUnity() {
     seq:    decoded.seq,
     branch: branch?.name || "",
   });
-  window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
+ 
+setTimeout(() => {
+
+  window.location.href =
+    "SuperGoalieWebGL/index.html?" + params.toString();
+
+}, 3000);
+
 }
 </script>
 

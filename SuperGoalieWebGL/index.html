@@ -216,7 +216,12 @@
           amount: SESSION.amount || "",
         });
 
-        window.location.href = RETURN_URL + "?" + params.toString();
+        setTimeout(() => {
+
+  window.location.href =
+    RETURN_URL + "?" + params.toString();
+
+}, 5000);
       };
 
       window.OnGoalMissed = async function () {
@@ -232,7 +237,12 @@
           amount: SESSION.amount || "",
         });
 
-        window.location.href = RETURN_URL + "?" + params.toString();
+       setTimeout(() => {
+
+  window.location.href =
+    RETURN_URL + "?" + params.toString();
+
+}, 5000);
       };
     </script>
   </body>
