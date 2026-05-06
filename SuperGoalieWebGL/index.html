@@ -305,58 +305,58 @@
 
   // ── GOL ──────────────────────────────────────
 
-  async function OnGoalScored() {
+window.OnGoalScored = async function() {
 
-    mostrarSticker("img/gol.png");
+  mostrarSticker("img/gol.png");
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const prizeKey   = choosePrize(SESSION.amount);
+  const prizeKey   = choosePrize(SESSION.amount);
 
-    const prizeLabel = PRIZE_LABELS[prizeKey] || prizeKey;
+  const prizeLabel = PRIZE_LABELS[prizeKey] || prizeKey;
 
-    const ticket = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
+  const ticket = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
 
-    await markUsed("ganadora", prizeLabel, ticket);
+  await markUsed("ganadora", prizeLabel, ticket);
 
-    if (SESSION.sucId) {
-      await decrementInventory(SESSION.sucId, prizeKey);
-    }
-
-    const params = new URLSearchParams({
-      result: "gol",
-      prize:  prizeLabel,
-      ticket: ticket,
-      key:    SESSION.key    || "",
-      branch: SESSION.branch || "",
-      amount: SESSION.amount || "",
-    });
-
-    window.location.href = RETURN_URL + "?" + params.toString();
+  if (SESSION.sucId) {
+    await decrementInventory(SESSION.sucId, prizeKey);
   }
+
+  const params = new URLSearchParams({
+    result: "gol",
+    prize:  prizeLabel,
+    ticket: ticket,
+    key:    SESSION.key    || "",
+    branch: SESSION.branch || "",
+    amount: SESSION.amount || "",
+  });
+
+  window.location.href = RETURN_URL + "?" + params.toString();
+};
 
   // ── FALLA ──────────────────────────────────────
 
-  async function OnGoalMissed() {
+  window.OnGoalMissed = async function() {
 
-    mostrarSticker("img/fallaste.png");
+  mostrarSticker("img/fallaste.png");
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const ticket = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
+  const ticket = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
 
-    await markUsed("no ganadora", "", ticket);
+  await markUsed("no ganadora", "", ticket);
 
-    const params = new URLSearchParams({
-      result: "fallo",
-      ticket: ticket,
-      key:    SESSION.key    || "",
-      branch: SESSION.branch || "",
-      amount: SESSION.amount || "",
-    });
+  const params = new URLSearchParams({
+    result: "fallo",
+    ticket: ticket,
+    key:    SESSION.key    || "",
+    branch: SESSION.branch || "",
+    amount: SESSION.amount || "",
+  });
 
-    window.location.href = RETURN_URL + "?" + params.toString();
-  }
+  window.location.href = RETURN_URL + "?" + params.toString();
+};
 
 </script>
   </body>

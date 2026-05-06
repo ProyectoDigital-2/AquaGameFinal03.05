@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | Super Goalie Basic</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+
+
+#stickerResultado {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+#stickerResultado img {
+  width: min(80vw, 650px);
+  animation: stickerPop 1.5s ease forwards;
+}
+
+@keyframes stickerPop {
+  0% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+  20% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  70% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0; }
+}
+
+
+
+      body { margin:0; background:#000; overflow:hidden; }
+      @media (orientation:portrait) {
+        #unity-container {
+          position:fixed; top:0; left:0;
+          width:100vh; height:100vw;
+          transform:rotate(90deg);
+          transform-origin:top left;
+          margin-left:100vw;
+          overflow:hidden;
+        }
+        #unity-canvas { width:100% !important; height:100% !important; }
+      }
+      @media (orientation:landscape) {
+        #unity-container { width:100vw; height:100vh; }
+        #unity-canvas    { width:100% !important; height:100% !important; }
+      }
+    </style>
+  </head>
+  <body>
+<div id="stickerResultado">
+  <img id="stickerImg" src="" alt="resultado">
+</div>
+
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer" style="display:none">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Aqua Champions 2026</div>
+      </div>
+    </div>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/AquaProyecto.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/AquaProyecto.data",
+        frameworkUrl: buildUrl + "/AquaProyecto.framework.js",
+        codeUrl: buildUrl + "/AquaProyecto.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "Super Goalie Basic",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+        // errorHandler: function(err, url, line) {
+        //    alert("error " + err + " occurred at line " + line);
+        //    // Return 'true' if you handled this error and don't want Unity
+        //    // to process it further, 'false' otherwise.
+        //    return true;
+        // },
+      };
+
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      // If you would like all file writes inside Unity Application.persistentDataPath
+      // directory to automatically persist so that the contents are remembered when
+      // the user revisits the site the next time, uncomment the following line:
+      // config.autoSyncPersistentDataPath = true;
+      // This autosyncing is currently not the default behavior to avoid regressing
+      // existing user projects that might rely on the earlier manual
+      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
+      // expected to change.
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                document.querySelector("#unity-loading-bar").style.display = "none";
+                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+
+              }).catch((message) => {
+                alert(message);
+              });
+            };
+
+      document.body.appendChild(script);
+
+    </script>
+<script>
+
+  // ── STICKERS ──────────────────────────────────────
+
+  function mostrarSticker(ruta) {
+    const contenedor = document.getElementById("stickerResultado");
+    const img = document.getElementById("stickerImg");
+
+    img.src = ruta;
+    contenedor.style.display = "flex";
+
+    img.style.animation = "none";
+    void img.offsetWidth;
+    img.style.animation = "stickerPop 1.5s ease forwards";
+
+    setTimeout(() => {
+      contenedor.style.display = "none";
+    }, 1500);
+  }
+
+  // ── AquaChampions Bridge ──────────────────────────────────────
+
+  const FB_URL     = "https://aquachampions2026-default-rtdb.firebaseio.com";
+  const RETURN_URL = "https://proyectodigital-2.github.io/AquaGame3D/";
+
+  const _p = new URLSearchParams(window.location.search);
+
+  const SESSION = {
+    key:    _p.get("key")    || null,
+    sucId:  _p.get("sucId")  || null,
+    amount: _p.get("amount") || null,
+    seq:    _p.get("seq")    || null,
+    branch: _p.get("branch") || null,
+  };
+
+  const PRIZE_LABELS = {
+    cilindro: "Cilindro AquaChampions",
+    playera:  "Playera Oficial",
+    rompe:    "Rompe Vientos",
+    hielera:  "Hielera AquaChampions",
+    balon:    "Balon AquaChampions",
+    mascara:  "Mascara AquaChampions"
+  };
+
+  function choosePrize(amount) {
+
+    const weights = {
+      200: { cilindro:50, hielera:30, mascara:20 },
+      300: { cilindro:25, playera:30, hielera:20, balon:15, mascara:10 },
+      500: { playera:35, rompe:30, balon:25, hielera:10 }
+    };
+
+    const w = weights[parseInt(amount)] || weights[200];
+
+    const total = Object.values(w).reduce((s,v)=>s+v, 0);
+
+    let r = Math.random() * total;
+
+    for (const [k,v] of Object.entries(w)) {
+      r -= v;
+      if (r<=0) return k;
+    }
+
+    return Object.keys(w)[0];
+  }
+
+  async function markUsed(result, prize, ticket) {
+
+    if (!SESSION.key) return;
+
+    const path = SESSION.key.replace(/-/g,"_");
+
+    try {
+
+      await fetch(`${FB_URL}/usadas/${path}.json`, {
+        method:  "PUT",
+        headers: { "Content-Type": "application/json" },
+
+        body: JSON.stringify({
+          status:"usada",
+          result,
+          prize,
+          ticket,
+          sucId:  SESSION.sucId,
+          branch: SESSION.branch || "",
+          amount: SESSION.amount,
+          seq:    SESSION.seq,
+          fecha:  new Date().toLocaleString("es-MX")
+        })
+      });
+
+      console.log("Firebase OK:", result);
+
+    } catch(e) {
+
+      console.error("Firebase error:", e);
+
+    }
+  }
+
+  async function decrementInventory(sucId, prizeKey) {
+
+    const url = `${FB_URL}/inventario/suc${sucId}/${prizeKey}.json`;
+
+    try {
+
+      const res     = await fetch(url);
+      const current = await res.json();
+
+      if (current && current > 0) {
+
+        await fetch(url, {
+          method:  "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(current - 1)
+        });
+
+      }
+
+    } catch(e) {
+
+      console.error("Inventario error:", e);
+
+    }
+  }
+
+  // ── GOL ──────────────────────────────────────
+
+window.OnGoalScored = async function() {
+
+  mostrarSticker("img/gol.png");
+
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  const prizeKey   = choosePrize(SESSION.amount);
+
+  const prizeLabel = PRIZE_LABELS[prizeKey] || prizeKey;
+
+  const ticket = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
+
+  await markUsed("ganadora", prizeLabel, ticket);
+
+  if (SESSION.sucId) {
+    await decrementInventory(SESSION.sucId, prizeKey);
+  }
+
+  const params = new URLSearchParams({
+    result: "gol",
+    prize:  prizeLabel,
+    ticket: ticket,
+    key:    SESSION.key    || "",
+    branch: SESSION.branch || "",
+    amount: SESSION.amount || "",
+  });
+
+  window.location.href = RETURN_URL + "?" + params.toString();
+};
+
+  // ── FALLA ──────────────────────────────────────
+
+  window.OnGoalMissed = async function() {
+
+  mostrarSticker("img/fallaste.png");
+
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  const ticket = "AQM-" + SESSION.sucId + "-" + SESSION.amount + "-" + Date.now();
+
+  await markUsed("no ganadora", "", ticket);
+
+  const params = new URLSearchParams({
+    result: "fallo",
+    ticket: ticket,
+    key:    SESSION.key    || "",
+    branch: SESSION.branch || "",
+    amount: SESSION.amount || "",
+  });
+
+  window.location.href = RETURN_URL + "?" + params.toString();
+};
+
+</script>
+  </body>
+</html>
