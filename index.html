@@ -680,7 +680,7 @@ button{
       </div>
       <div class="btns">
  <button class="primary" id="startMenuBtn" disabled>
-  ⚽ Jugar versión 3D
+  ⚽ Continuar
 </button>
 
 
@@ -752,6 +752,52 @@ button{
       <button class="admin-dl-btn" id="adminDlBtn">⬇ Descargar BD completa (.xlsx)</button>
     </div>
   </div>
+
+<!-- Modal: Elegir modo -->
+<div id="modoModal" class="hidden" style="position:fixed;inset:0;z-index:9998;background:rgba(0,10,28,.96);display:flex;align-items:center;justify-content:center;">
+  <div class="pregame-card">
+    <div class="pg-kicker">Aqua Champions 2026</div>
+    <div class="pg-title" style="font-size:22px;margin-bottom:8px">¿Cómo quieres jugar?</div>
+    <div class="pg-sub">Elige tu modo antes de usar tu tiro único oficial.</div>
+    <div class="pregame-steps">
+      <div class="pregame-step">
+        <div class="pregame-step-num" style="background:linear-gradient(135deg,#0A92D3,#0b7bb5)">🎯</div>
+        <div class="pregame-step-text">
+          <strong>Practicar:</strong> Tira hasta 5 penales en el simulador 2D. Sin consecuencias, solo para calentar.
+        </div>
+      </div>
+      <div class="pregame-step">
+        <div class="pregame-step-num">🏆</div>
+        <div class="pregame-step-text">
+          <strong>Juego Real 3D:</strong> Tu tiro único oficial. Aquí se decide si ganas el premio.
+        </div>
+      </div>
+    </div>
+    <button class="pregame-play-btn" style="background:linear-gradient(90deg,#0A92D3,#0b7bb5);margin-bottom:10px" onclick="iniciarPractica()">
+      🎯 Practicar (5 tiros libres)
+    </button>
+    <button class="pregame-play-btn" onclick="cerrarModoModalEIrReal()">
+      ▶ ¡Jugar en 3D ahora!
+    </button>
+    <button class="pregame-back" onclick="cerrarModoModal()">← Volver al menú</button>
+  </div>
+</div>
+
+<!-- Modal: Fin de práctica -->
+<div id="practicaEndModal" class="hidden" style="position:fixed;inset:0;z-index:9999;background:rgba(0,10,28,.96);display:flex;align-items:center;justify-content:center;">
+  <div class="pregame-card">
+    <div class="pg-kicker">Práctica terminada</div>
+    <div class="pg-title" id="practicaEndTitulo" style="font-size:24px;margin-bottom:8px">¡Buen trabajo!</div>
+    <div class="pg-sub" id="practicaEndSub">Anotaste X de 5 tiros.</div>
+    <button class="pregame-play-btn" style="background:linear-gradient(90deg,#0A92D3,#0b7bb5);margin-bottom:10px" onclick="iniciarPractica()">
+      🔁 Practicar de nuevo
+    </button>
+    <button class="pregame-play-btn" onclick="cerrarPracticaEndEIrReal()">
+      ▶ ¡Hacer mi tiro único en 3D!
+    </button>
+    <button class="pregame-back" onclick="cerrarPracticaEndAlMenu()">← Volver al menú principal</button>
+  </div>
+</div>
 
 <!-- Pre-game modal -->
 <div id="pregameModal" class="hidden">
@@ -3202,7 +3248,8 @@ startMenuBtn.addEventListener("click", async () => {
   state.rechargeAmount    = entry.amount;
   state.promoTicket       = buildPromoTicket();
   state.promoAward        = null;
-  irSuperGoalie();
+  // Mostrar modal de selección de modo
+  document.getElementById("modoModal").classList.remove("hidden");
 });
 document.getElementById("overlayBtn").addEventListener("click", () => {
   overlayEl.classList.add("hidden");
@@ -3619,8 +3666,122 @@ async function _buildAndDownload(btn) {
 ">GS Log</button>
 <div id="gsDebug" style="display:none"></div>
 <script>
-function irSuperGoalie() {
-  const decoded = state.promoAccessDecoded;
+// ═══════════════════════════════════════════════════════════════════
+// MODO PRÁCTICA — 5 tiros libres en el canvas 2D
+// ═══════════════════════════════════════════════════════════════════
+let practicaEnCurso    = false;
+let practicaTiros      = 0;
+let practicaGoles      = 0;
+const PRACTICA_MAX     = 5;
+
+function cerrarModoModal() {
+  document.getElementById("modoModal").classList.add("hidden");
+}
+
+function cerrarModoModalEIrReal() {
+  cerrarModoModal();
+  irSuperGoalie();
+}
+
+function cerrarPracticaEndEIrReal() {
+  document.getElementById("practicaEndModal").classList.add("hidden");
+  practicaEnCurso = false;
+  irSuperGoalie();
+}
+
+function cerrarPracticaEndAlMenu() {
+  document.getElementById("practicaEndModal").classList.add("hidden");
+  practicaEnCurso = false;
+  goToMainMenu();
+}
+
+function iniciarPractica() {
+  document.getElementById("modoModal").classList.add("hidden");
+  document.getElementById("practicaEndModal").classList.add("hidden");
+  practicaTiros  = 0;
+  practicaGoles  = 0;
+  practicaEnCurso = true;
+  state.screen  = "play";
+  state.mode    = "promo";
+  state._practicaMode = true;
+  state.shooter = "p1";
+  state.scores  = { p1: 0, p2: 0 };
+  state.attempts = { p1: [], p2: [] };
+  state.suddenDeath  = false;
+  state.netShake     = 0;
+  state.crowdBurst   = 0;
+  state.promoAward   = null;
+  state.promoOutcomeLabel = "";
+  state.promoScored  = false;
+  state.promoGoalProbability = getRechargeConfig().goalProbability;
+  menuEl.classList.add("hidden");
+  overlayEl.classList.add("hidden");
+  endScreenEl.classList.add("hidden");
+  bracketOverlayEl.classList.add("hidden");
+  resetShotState();
+  _actualizarHudPractica();
+}
+
+function _actualizarHudPractica() {
+  turnLabelEl.textContent  = practicaTiros < PRACTICA_MAX
+    ? "PRÁCTICA — Tiro " + (practicaTiros + 1) + " de " + PRACTICA_MAX
+    : "PRÁCTICA — ¡Terminaste!";
+  roundBadgeEl.textContent = "Práctica · " + practicaTiros + "/" + PRACTICA_MAX;
+  roundBadgeEl.style.background = "rgba(10,146,211,.16)";
+  roundBadgeEl.style.color      = "#0A92D3";
+  const dotsArr = Array.from({ length: PRACTICA_MAX }, function(_, i) {
+    if (i >= practicaTiros) return "pending";
+    return state.attempts.p1[i] ? "goal" : "miss";
+  });
+  leftDotsEl.innerHTML  = dotsArr.map(function(c){ return '<div class="dot ' + c + '"></div>'; }).join("");
+  rightDotsEl.innerHTML = "";
+}
+
+// ── Parche: interceptar finishMatch y nextShooter para práctica ───────────────
+(function() {
+  var _origFinish = finishMatch;
+  var _origNext   = nextShooter;
+
+  finishMatch = function() {
+    if (state._practicaMode) {
+      _terminarPractica();
+      return;
+    }
+    _origFinish.apply(this, arguments);
+  };
+
+  nextShooter = function() {
+    if (state._practicaMode) {
+      practicaTiros++;
+      if (practicaTiros >= PRACTICA_MAX) {
+        state._practicaMode = false;
+        practicaEnCurso = false;
+        setTimeout(_terminarPractica, 1200);
+      } else {
+        resetShotState();
+        _actualizarHudPractica();
+      }
+      return;
+    }
+    _origNext.apply(this, arguments);
+  };
+})();
+
+function _terminarPractica() {
+  state._practicaMode = false;
+  practicaEnCurso = false;
+  practicaGoles = state.scores.p1;  // puntos acumulados en práctica
+  var emoji = practicaGoles >= 4 ? "🔥" : practicaGoles >= 2 ? "👍" : "💪";
+  document.getElementById("practicaEndTitulo").textContent =
+    practicaGoles >= 4 ? emoji + " ¡Excelente puntería!" :
+    practicaGoles >= 2 ? emoji + " ¡Buen trabajo!"       :
+                         emoji + " Sigue practicando";
+  document.getElementById("practicaEndSub").textContent =
+    "Anotaste " + practicaGoles + " de " + PRACTICA_MAX + " tiros de práctica.";
+  document.getElementById("practicaEndModal").classList.remove("hidden");
+}
+
+function irSuperGoalie() {  const decoded = state.promoAccessDecoded;
   const branch  = decoded ? getBranchById(decoded.sucId) : null;
 
   // Fill pregame modal info
