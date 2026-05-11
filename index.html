@@ -3494,9 +3494,29 @@ function openAdminPanel() {
   document.getElementById("adminKeyInput").value = "";
 }
 
-// ── Detectar regreso desde práctica en Unity ──────────────────────────
+// ── Detectar regreso desde Unity (práctica o tiro real) ──────────────
 (function () {
   var params = new URLSearchParams(window.location.search);
+
+  // Restaurar estado guardado antes de ir a Unity
+  var saved = sessionStorage.getItem("aquaPromoState");
+  if (saved) {
+    try {
+      var s = JSON.parse(saved);
+      sessionStorage.removeItem("aquaPromoState");
+      document.addEventListener("DOMContentLoaded", function () {
+        state.promoAccessEntry   = s.promoAccessEntry;
+        state.promoAccessDecoded = s.promoAccessDecoded;
+        state.branchId           = s.branchId;
+        state.rechargeAmount     = s.rechargeAmount;
+        state.promoTicket        = s.promoTicket;
+        state.branchAccessCode   = s.branchAccessCode || "";
+        state.mode               = "promo";
+      });
+    } catch(e) { console.warn("No se pudo restaurar estado promo", e); }
+  }
+
+  // Regreso desde práctica
   if (params.get("practicaTerminada") === "1") {
     history.replaceState({}, "", window.location.pathname);
     document.addEventListener("DOMContentLoaded", function () {
@@ -3822,6 +3842,21 @@ function closePregame() {
   document.getElementById("pregameModal").classList.add("hidden");
 }
 
+// ── Callbacks que Unity llama al terminar el tiro único ──────────────
+window.OnGoalScored = function () {
+  // Unity anotó gol en modo real
+  state.promoScored = true;
+  assignPromoPrize();
+  finishMatch();
+};
+
+window.OnGoalMissed = function () {
+  // Unity falló el tiro en modo real
+  state.promoScored = false;
+  state.promoOutcomeLabel = "Sigue participando.";
+  finishMatch();
+};
+
 function launchUnity() {
   const decoded = state.promoAccessDecoded;
   const branch  = decoded ? getBranchById(decoded.sucId) : null;
@@ -3837,14 +3872,20 @@ function launchUnity() {
     seq:    decoded.seq,
     branch: branch?.name || "",
   });
- 
-setTimeout(() => {
 
-  window.location.href =
-    "SuperGoalieWebGL/index.html?" + params.toString();
+  // Guardar estado antes de salir para recuperarlo al regresar
+  sessionStorage.setItem("aquaPromoState", JSON.stringify({
+    promoAccessEntry:  state.promoAccessEntry,
+    promoAccessDecoded: state.promoAccessDecoded,
+    branchId:          state.branchId,
+    rechargeAmount:    state.rechargeAmount,
+    promoTicket:       state.promoTicket,
+    branchAccessCode:  state.branchAccessCode,
+  }));
 
-}, 1000);
-
+  setTimeout(() => {
+    window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
+  }, 1000);
 }
 </script>
 
