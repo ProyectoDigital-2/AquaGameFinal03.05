@@ -3528,6 +3528,23 @@ function openAdminPanel() {
       }
     });
   }
+
+  // Regreso desde tiro único real
+  var resultado = params.get("resultado");
+  if (resultado === "gol" || resultado === "fallo") {
+    history.replaceState({}, "", window.location.pathname);
+    document.addEventListener("DOMContentLoaded", function () {
+      // Restaurar estado y ejecutar finishMatch con el resultado correcto
+      if (resultado === "gol") {
+        state.promoScored = true;
+        assignPromoPrize();
+      } else {
+        state.promoScored = false;
+        state.promoOutcomeLabel = "Sigue participando.";
+      }
+      finishMatch();
+    });
+  }
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -3841,21 +3858,6 @@ function irSuperGoalie() {  const decoded = state.promoAccessDecoded;
 function closePregame() {
   document.getElementById("pregameModal").classList.add("hidden");
 }
-
-// ── Callbacks que Unity llama al terminar el tiro único ──────────────
-window.OnGoalScored = function () {
-  // Unity anotó gol en modo real
-  state.promoScored = true;
-  assignPromoPrize();
-  finishMatch();
-};
-
-window.OnGoalMissed = function () {
-  // Unity falló el tiro en modo real
-  state.promoScored = false;
-  state.promoOutcomeLabel = "Sigue participando.";
-  finishMatch();
-};
 
 function launchUnity() {
   const decoded = state.promoAccessDecoded;
