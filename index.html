@@ -3494,6 +3494,22 @@ function openAdminPanel() {
   document.getElementById("adminKeyInput").value = "";
 }
 
+// ── Detectar regreso desde práctica en Unity ──────────────────────────
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get("practicaTerminada") === "1") {
+    history.replaceState({}, "", window.location.pathname);
+    document.addEventListener("DOMContentLoaded", function () {
+      var modal = document.getElementById("practicaEndModal");
+      if (modal) {
+        document.getElementById("practicaEndTitulo").textContent = "¡Práctica terminada!";
+        document.getElementById("practicaEndSub").textContent    = "¿Quieres practicar de nuevo o hacer tu tiro único?";
+        modal.classList.remove("hidden");
+      }
+    });
+  }
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("adminCloseBtn").onclick = () => {
     document.getElementById("adminPanel").classList.add("hidden");
@@ -3698,28 +3714,28 @@ function cerrarPracticaEndAlMenu() {
 function iniciarPractica() {
   document.getElementById("modoModal").classList.add("hidden");
   document.getElementById("practicaEndModal").classList.add("hidden");
-  practicaTiros  = 0;
-  practicaGoles  = 0;
-  practicaEnCurso = true;
-  state.screen  = "play";
-  state.mode    = "promo";
-  state._practicaMode = true;
-  state.shooter = "p1";
-  state.scores  = { p1: 0, p2: 0 };
-  state.attempts = { p1: [], p2: [] };
-  state.suddenDeath  = false;
-  state.netShake     = 0;
-  state.crowdBurst   = 0;
-  state.promoAward   = null;
-  state.promoOutcomeLabel = "";
-  state.promoScored  = false;
-  state.promoGoalProbability = getRechargeConfig().goalProbability;
-  menuEl.classList.add("hidden");
-  overlayEl.classList.add("hidden");
-  endScreenEl.classList.add("hidden");
-  bracketOverlayEl.classList.add("hidden");
-  resetShotState();
-  _actualizarHudPractica();
+
+  const decoded = state.promoAccessDecoded;
+  const branch  = decoded ? getBranchById(decoded.sucId) : null;
+  if (!decoded) {
+    alert("Primero ingresa una clave válida para practicar.");
+    return;
+  }
+
+  const key    = rebuildKey(decoded.sucId, decoded.amount, decoded.seq);
+  const params = new URLSearchParams({
+    key:      key,
+    sucId:    decoded.sucId,
+    amount:   decoded.amount,
+    seq:      decoded.seq,
+    branch:   branch?.name || "",
+    practica: "1",
+    tirosMax: "5",
+  });
+
+  setTimeout(() => {
+    window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
+  }, 300);
 }
 
 function _actualizarHudPractica() {
