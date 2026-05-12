@@ -658,6 +658,7 @@ button{
     </div>
   </div>
 
+  <div id="bgOverlay" style="display:none;position:fixed;inset:0;z-index:2;background:#000E1F;"></div>
   <div id="menu">
     <div class="panel">
       <div class="kicker">Promo Especial</div>
@@ -763,21 +764,21 @@ button{
       <div class="pregame-step">
         <div class="pregame-step-num" style="background:linear-gradient(135deg,#0A92D3,#0b7bb5)">🎯</div>
         <div class="pregame-step-text">
-          <strong>Practicar:</strong> Tira hasta 5 penales en el simulador 2D. Sin consecuencias, solo para calentar.
+          <strong>Practicar:</strong> Tira 5 penales antes de tu tiro oficial.
         </div>
       </div>
       <div class="pregame-step">
         <div class="pregame-step-num">🏆</div>
         <div class="pregame-step-text">
-          <strong>Juego Real 3D:</strong> Tu tiro único oficial. Aquí se decide si ganas el premio.
+          <strong>Jugar ahora:</strong> Tu tiro único oficial. Aquí se decide si ganas el premio.
         </div>
       </div>
     </div>
     <button class="pregame-play-btn" style="background:linear-gradient(90deg,#0A92D3,#0b7bb5);margin-bottom:10px" onclick="iniciarPractica()">
-      🎯 Practicar (5 tiros libres)
+      🎯 Practicar (tira 5 tiros penales)
     </button>
     <button class="pregame-play-btn" onclick="cerrarModoModalEIrReal()">
-      ▶ ¡Jugar en 3D ahora!
+      ▶ Jugar ahora
     </button>
     <button class="pregame-back" onclick="cerrarModoModal()">← Volver al menú</button>
   </div>
@@ -1998,6 +1999,7 @@ async function startMatch(mode) {
     state.promoScored = false;
     menuEl.classList.add("hidden");
     overlayEl.classList.add("hidden");
+    var bg = document.getElementById("bgOverlay"); if(bg) bg.style.display = "none";
     endScreenEl.classList.add("hidden");
     bracketOverlayEl.classList.add("hidden");
     resetShotState();
@@ -3249,6 +3251,10 @@ startMenuBtn.addEventListener("click", async () => {
   state.promoTicket       = buildPromoTicket();
   state.promoAward        = null;
   // Mostrar modal de selección de modo
+  document.getElementById("cv").style.display = "none";
+  document.getElementById("topbar").style.display = "none";
+  document.getElementById("status").style.display = "none";
+  document.getElementById("menu").style.display = "none";
   document.getElementById("modoModal").classList.remove("hidden");
 });
 document.getElementById("overlayBtn").addEventListener("click", () => {
@@ -3548,6 +3554,7 @@ function openAdminPanel() {
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("bgOverlay").style.display = "block";
   document.getElementById("adminCloseBtn").onclick = () => {
     document.getElementById("adminPanel").classList.add("hidden");
   };
@@ -3729,6 +3736,10 @@ const PRACTICA_MAX     = 5;
 
 function cerrarModoModal() {
   document.getElementById("modoModal").classList.add("hidden");
+  document.getElementById("cv").style.display = "block";
+  document.getElementById("topbar").style.display = "";
+  document.getElementById("status").style.display = "";
+  document.getElementById("menu").style.display = "";
 }
 
 function cerrarModoModalEIrReal() {
