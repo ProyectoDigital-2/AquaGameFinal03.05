@@ -3518,6 +3518,14 @@ function openAdminPanel() {
         state.promoTicket        = s.promoTicket;
         state.branchAccessCode   = s.branchAccessCode || "";
         state.mode               = "promo";
+        // Restaurar input y habilitar botón
+        var inputEl = document.getElementById("branchAccessInput");
+        if (inputEl) inputEl.value = state.branchAccessCode;
+        var btn = document.getElementById("startMenuBtn");
+        if (btn && state.branchAccessCode) {
+          btn.disabled = false;
+          btn.textContent = "⚽ Continuar";
+        }
       });
     } catch(e) { console.warn("No se pudo restaurar estado promo", e); }
   }
@@ -3526,6 +3534,15 @@ function openAdminPanel() {
   if (params.get("practicaTerminada") === "1") {
     history.replaceState({}, "", window.location.pathname);
     document.addEventListener("DOMContentLoaded", function () {
+      // Ocultar juego 2D y mostrar modal de fin de práctica
+      var cv = document.getElementById("cv");
+      var topbar = document.getElementById("topbar");
+      var status = document.getElementById("status");
+      var menu = document.getElementById("menu");
+      if (cv) cv.style.display = "none";
+      if (topbar) topbar.style.display = "none";
+      if (status) status.style.display = "none";
+      if (menu) menu.style.display = "none";
       var modal = document.getElementById("practicaEndModal");
       if (modal) {
         document.getElementById("practicaEndTitulo").textContent = "¡Práctica terminada!";
@@ -3756,7 +3773,12 @@ function cerrarPracticaEndEIrReal() {
 function cerrarPracticaEndAlMenu() {
   document.getElementById("practicaEndModal").classList.add("hidden");
   practicaEnCurso = false;
-  goToMainMenu();
+  // Mostrar modal de opciones (ya tiene la clave válida)
+  document.getElementById("cv").style.display = "none";
+  document.getElementById("topbar").style.display = "none";
+  document.getElementById("status").style.display = "none";
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("modoModal").classList.remove("hidden");
 }
 
 function iniciarPractica() {
