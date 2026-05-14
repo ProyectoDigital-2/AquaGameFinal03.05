@@ -3637,7 +3637,7 @@ async function renderAdminContent() {
 
 function rebuildKey(sucId, amount, seq) {
   // Inverse of codecDecode
-  const amountMap = {200:2,300:3,500:5};
+  const amountMap = {600:6,1200:1};
   const a = amountMap[amount];
   const packed = sucId * 100000 + a * 10000 + seq;
   const xored  = packed ^ CODEC_SALT;
