@@ -753,6 +753,7 @@ button{
       </div>
       <button class="admin-dl-btn" id="adminDlBtn">⬇ Descargar BD completa (.xlsx)</button>
       <button class="admin-dl-btn" id="adminSyncInvBtn" style="background:linear-gradient(90deg,#1a7a1a,#145214);margin-top:8px" onclick="syncInventarioExcel()">🔄 Subir inventario Excel a Firebase</button>
+      <button class="admin-dl-btn" id="adminResetUsadasBtn" style="background:linear-gradient(90deg,#8B0000,#600000);margin-top:8px" onclick="resetUsadas()">🗑 Reiniciar claves usadas</button>
     </div>
   </div>
 
@@ -1046,7 +1047,6 @@ const DEFAULT_BRANCHES = [
   { id: "suc59", name: "Sucursal Manuel Cañas", inventory: { termos: 51, playera: 32, rompe: 32, hielera: 100, balon: 30, mascara: 20 } },
   { id: "suc167", name: "Sucursal Manuel Ordoñez", inventory: { termos: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
   { id: "suc51", name: "Sucursal Mariano Escobedo", inventory: { termos: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
-  { id: "suc1", name: "Sucursal Master", inventory: { termos: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
   { id: "suc85", name: "Sucursal Metepec", inventory: { termos: 31, playera: 20, rompe: 20, hielera: 62, balon: 18, mascara: 12 } },
   { id: "suc153", name: "Sucursal Metro Olímpica", inventory: { termos: 23, playera: 15, rompe: 15, hielera: 46, balon: 14, mascara: 9 } },
   { id: "suc36", name: "Sucursal Millenium", inventory: { termos: 35, playera: 22, rompe: 22, hielera: 70, balon: 21, mascara: 14 } },
@@ -1058,7 +1058,6 @@ const DEFAULT_BRANCHES = [
   { id: "suc166", name: "Sucursal Nuevo Hidalgo", inventory: { termos: 24, playera: 16, rompe: 16, hielera: 49, balon: 15, mascara: 10 } },
   { id: "suc5", name: "Sucursal Oblatos", inventory: { termos: 24, playera: 15, rompe: 15, hielera: 48, balon: 14, mascara: 10 } },
   { id: "suc0", name: "Sucursal Pablo Neruda", inventory: { termos: 31, playera: 20, rompe: 20, hielera: 62, balon: 19, mascara: 12 } },
-  { id: "suc15", name: "Sucursal Pablo Neruda Valet", inventory: { termos: 31, playera: 20, rompe: 20, hielera: 62, balon: 19, mascara: 12 } },
   { id: "suc106", name: "Sucursal Palomas", inventory: { termos: 37, playera: 24, rompe: 24, hielera: 74, balon: 22, mascara: 15 } },
   { id: "suc46", name: "Sucursal Parque Celaya", inventory: { termos: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
   { id: "suc169", name: "Sucursal Paseos del Mar", inventory: { termos: 27, playera: 17, rompe: 17, hielera: 53, balon: 16, mascara: 11 } },
@@ -3689,7 +3688,7 @@ async function _buildAndDownload(btn) {
 
   DEFAULT_BRANCHES.forEach(branch => {
     const sucId = parseInt(branch.id.replace("suc",""));
-    [200,300,500].forEach(amount => {
+    [600,1200].forEach(amount => {
       for (let seq = 1; seq <= 240; seq++) {
         const key    = rebuildKey(sucId, amount, seq);
         const path   = key.replace(/-/g,"_");
@@ -3710,21 +3709,23 @@ async function _buildAndDownload(btn) {
   ws["!cols"] = [16,12,26,11,13,13,14,22,22,16].map(w => ({wch:w}));
   XLSX.utils.book_append_sheet(wb, ws, "BD Claves");
 
-  const sumRows = [["ID","Sucursal","Usadas $200","Usadas $300","Usadas $500","Total Usadas","Stock restante"]];
+  const sumRows = [["ID","Sucursal","Usadas $600","Usadas $1200","Total Usadas","Termos","Playera","Rompe","Hielera","Balón","Máscara","Stock restante"]];
   DEFAULT_BRANCHES.forEach(branch => {
     const sucId = parseInt(branch.id.replace("suc",""));
-    let u200=0, u300=0, u500=0;
+    let u600=0, u1200=0;
     Object.values(usedMap).forEach(r => {
       if (String(r.sucId) === String(sucId)) {
-        if (String(r.amount)==="200") u200++;
-        else if (String(r.amount)==="300") u300++;
-        else if (String(r.amount)==="500") u500++;
+        if (String(r.amount)==="600") u600++;
+        else if (String(r.amount)==="1200") u1200++;
       }
     });
-    sumRows.push([sucId, branch.name, u200, u300, u500, u200+u300+u500, totalBranchStock(branch)]);
+    const inv = getBranchInventory(branch);
+    sumRows.push([sucId, branch.name, u600, u1200, u600+u1200,
+      inv.termos||0, inv.playera||0, inv.rompe||0, inv.hielera||0, inv.balon||0, inv.mascara||0,
+      totalBranchStock(branch)]);
   });
   const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
-  ws2["!cols"] = [8,26,14,14,14,14,14].map(w=>({wch:w}));
+  ws2["!cols"] = [8,26,13,13,13,11,11,11,11,11,11,14].map(w=>({wch:w}));
   XLSX.utils.book_append_sheet(wb, ws2, "Resumen por Sucursal");
 
   XLSX.writeFile(wb, "BD_AquaChampions_2026.xlsx");
@@ -3760,6 +3761,33 @@ async function syncInventarioExcel() {
       btn.textContent = "❌ Error al subir";
       btn.disabled = false;
     }
+  } catch(e) {
+    btn.textContent = "❌ Error: " + e.message;
+    btn.disabled = false;
+  }
+}
+
+async function resetUsadas() {
+  if (!confirm("¿Seguro que deseas borrar TODAS las claves usadas? Esta acción no se puede deshacer.")) return;
+  const btn = document.getElementById("adminResetUsadasBtn");
+  btn.textContent = "⏳ Borrando...";
+  btn.disabled = true;
+  try {
+    // Borrar en Firebase
+    const res = await fetch(`${FB_URL}/usadas.json`, {
+      method: "DELETE"
+    });
+    // Borrar en localStorage
+    const local = getStorageData();
+    Object.keys(local).forEach(k => {
+      if (local[k].usedCodes) delete local[k].usedCodes;
+    });
+    saveBranchInventories(local);
+    state._storageCache = null;
+    btn.textContent = "✅ Claves reiniciadas";
+    btn.style.background = "linear-gradient(90deg,#0A92D3,#0b7bb5)";
+    gsLog("Claves usadas borradas OK", "#8f8");
+    renderAdminContent();
   } catch(e) {
     btn.textContent = "❌ Error: " + e.message;
     btn.disabled = false;
