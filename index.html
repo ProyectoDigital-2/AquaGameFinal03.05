@@ -752,6 +752,7 @@ button{
         </table>
       </div>
       <button class="admin-dl-btn" id="adminDlBtn">⬇ Descargar BD completa (.xlsx)</button>
+      <button class="admin-dl-btn" id="adminSyncInvBtn" style="background:linear-gradient(90deg,#1a7a1a,#145214);margin-top:8px" onclick="syncInventarioExcel()">🔄 Subir inventario Excel a Firebase</button>
     </div>
   </div>
 
@@ -960,7 +961,7 @@ const PRIZE_IMAGES = {
 const DEFAULT_BRANCHES = [
   { id: "suc118", name: "Sucursal 22 de Diciembre", inventory: { cilindro: 60, playera: 38, rompe: 38, hielera: 124, balon: 36, mascara: 24 } },
   { id: "suc173", name: "Sucursal 5 de Mayo", inventory: { cilindro: 43, playera: 27, rompe: 27, hielera: 86, balon: 26, mascara: 17 } },
-  { id: "suc165", name: "Sucursal Acapulco", inventory: { cilindro: 18, playera: 11, rompe: 11, hielera: 35, balon: 11, mascara: 7 } },
+  { id: "suc165", name: "Sucursal Acapulco", inventory: { cilindro: 25, playera: 16, rompe: 16, hielera: 51, balon: 15, mascara: 10 } },
   { id: "suc111", name: "Sucursal Alfredo del Mazo", inventory: { cilindro: 39, playera: 25, rompe: 25, hielera: 78, balon: 23, mascara: 16 } },
   { id: "suc117", name: "Sucursal Alta Villa", inventory: { cilindro: 28, playera: 18, rompe: 18, hielera: 56, balon: 17, mascara: 11 } },
   { id: "suc101", name: "Sucursal Av. Central", inventory: { cilindro: 34, playera: 22, rompe: 22, hielera: 68, balon: 20, mascara: 14 } },
@@ -994,7 +995,7 @@ const DEFAULT_BRANCHES = [
   { id: "suc176", name: "Sucursal Eduardo Mata", inventory: { cilindro: 60, playera: 38, rompe: 38, hielera: 124, balon: 36, mascara: 24 } },
   { id: "suc73", name: "Sucursal Eje 10", inventory: { cilindro: 36, playera: 23, rompe: 23, hielera: 73, balon: 22, mascara: 15 } },
   { id: "suc193", name: "Sucursal Eje 3", inventory: { cilindro: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
-  { id: "suc26", name: "Sucursal El Dorado", inventory: { cilindro: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
+  { id: "suc26", name: "Sucursal El Dorado", inventory: { cilindro: 18, playera: 11, rompe: 11, hielera: 35, balon: 11, mascara: 7 } },
   { id: "suc72", name: "Sucursal El Imán", inventory: { cilindro: 39, playera: 25, rompe: 25, hielera: 79, balon: 24, mascara: 16 } },
   { id: "suc104", name: "Sucursal El Peñón", inventory: { cilindro: 27, playera: 17, rompe: 17, hielera: 54, balon: 16, mascara: 11 } },
   { id: "suc53", name: "Sucursal El Tintero", inventory: { cilindro: 22, playera: 14, rompe: 14, hielera: 43, balon: 13, mascara: 9 } },
@@ -1051,7 +1052,7 @@ const DEFAULT_BRANCHES = [
   { id: "suc153", name: "Sucursal Metro Olímpica", inventory: { cilindro: 23, playera: 15, rompe: 15, hielera: 46, balon: 14, mascara: 9 } },
   { id: "suc36", name: "Sucursal Millenium", inventory: { cilindro: 35, playera: 22, rompe: 22, hielera: 70, balon: 21, mascara: 14 } },
   { id: "suc25", name: "Sucursal Miravalle", inventory: { cilindro: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
-  { id: "suc149", name: "Sucursal Moctezuma", inventory: { cilindro: 28, playera: 18, rompe: 18, hielera: 56, balon: 17, mascara: 11 } },
+  { id: "suc149", name: "Sucursal Moctezuma", inventory: { cilindro: 50, playera: 32, rompe: 32, hielera: 100, balon: 30, mascara: 20 } },
   { id: "suc121", name: "Sucursal Morelos", inventory: { cilindro: 15, playera: 10, rompe: 10, hielera: 30, balon: 9, mascara: 6 } },
   { id: "suc192", name: "Sucursal Nativitas", inventory: { cilindro: 20, playera: 13, rompe: 13, hielera: 40, balon: 12, mascara: 8 } },
   { id: "suc158", name: "Sucursal Norte 30", inventory: { cilindro: 30, playera: 19, rompe: 19, hielera: 61, balon: 18, mascara: 12 } },
