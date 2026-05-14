@@ -3509,7 +3509,7 @@ function openAdminPanel() {
   if (saved) {
     try {
       var s = JSON.parse(saved);
-      sessionStorage.removeItem("aquaPromoState");
+      // NO borrar — se necesita para cada práctica nueva
       document.addEventListener("DOMContentLoaded", function () {
         state.promoAccessEntry   = s.promoAccessEntry;
         state.promoAccessDecoded = s.promoAccessDecoded;
@@ -3799,6 +3799,16 @@ function iniciarPractica() {
     tirosMax: "5",
   });
 
+  // Guardar estado antes de salir
+  sessionStorage.setItem("aquaPromoState", JSON.stringify({
+    promoAccessEntry:   state.promoAccessEntry,
+    promoAccessDecoded: state.promoAccessDecoded,
+    branchId:           state.branchId,
+    rechargeAmount:     state.rechargeAmount,
+    promoTicket:        state.promoTicket,
+    branchAccessCode:   state.branchAccessCode,
+  }));
+
   setTimeout(() => {
     window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
   }, 300);
@@ -3915,6 +3925,7 @@ function launchUnity() {
   }));
 
   setTimeout(() => {
+    sessionStorage.removeItem("aquaPromoState"); // tiro real — ya no se necesita
     window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
   }, 1000);
 }
