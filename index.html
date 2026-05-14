@@ -3801,25 +3801,33 @@ async function syncInventarioExcel() {
 }
 
 async function resetUsadas() {
-  if (!confirm("¿Seguro que deseas borrar TODAS las claves usadas? Esta acción no se puede deshacer.")) return;
+  if (!confirm("¿Seguro que deseas borrar TODAS las claves usadas y restaurar el inventario completo? Esta acción no se puede deshacer.")) return;
   const btn = document.getElementById("adminResetUsadasBtn");
-  btn.textContent = "⏳ Borrando...";
+  btn.textContent = "⏳ Reiniciando...";
   btn.disabled = true;
   try {
-    // Borrar en Firebase
-    const res = await fetch(`${FB_URL}/usadas.json`, {
-      method: "DELETE"
+    // 1. Borrar claves usadas en Firebase
+    await fetch(`${FB_URL}/usadas.json`, { method: "DELETE" });
+
+    // 2. Restaurar inventario completo en Firebase desde EXCEL_INVENTORY
+    const resInv = await fetch(`${FB_URL}/inventario.json`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(EXCEL_INVENTORY)
     });
-    // Borrar en localStorage
+
+    // 3. Limpiar localStorage — claves usadas E inventario
     const local = getStorageData();
     Object.keys(local).forEach(k => {
-      if (local[k].usedCodes) delete local[k].usedCodes;
+      if (local[k].usedCodes)  delete local[k].usedCodes;
+      if (local[k].inventory)  delete local[k].inventory;  // se recargará desde Excel
     });
     saveBranchInventories(local);
     state._storageCache = null;
-    btn.textContent = "✅ Claves reiniciadas";
+
+    btn.textContent = "✅ Reiniciado completo";
     btn.style.background = "linear-gradient(90deg,#0A92D3,#0b7bb5)";
-    gsLog("Claves usadas borradas OK", "#8f8");
+    gsLog("Claves y inventario reiniciados OK", "#8f8");
     renderAdminContent();
   } catch(e) {
     btn.textContent = "❌ Error: " + e.message;
