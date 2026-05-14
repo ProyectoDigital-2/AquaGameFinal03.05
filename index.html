@@ -3530,11 +3530,10 @@ function openAdminPanel() {
     } catch(e) { console.warn("No se pudo restaurar estado promo", e); }
   }
 
-  // Regreso desde práctica
+  // Regreso desde práctica — ir directo al menú ¿Cómo quieres jugar?
   if (params.get("practicaTerminada") === "1") {
     history.replaceState({}, "", window.location.pathname);
     document.addEventListener("DOMContentLoaded", function () {
-      // Ocultar juego 2D y mostrar modal de fin de práctica
       var cv = document.getElementById("cv");
       var topbar = document.getElementById("topbar");
       var status = document.getElementById("status");
@@ -3543,12 +3542,9 @@ function openAdminPanel() {
       if (topbar) topbar.style.display = "none";
       if (status) status.style.display = "none";
       if (menu) menu.style.display = "none";
-      var modal = document.getElementById("practicaEndModal");
-      if (modal) {
-        document.getElementById("practicaEndTitulo").textContent = "¡Práctica terminada!";
-        document.getElementById("practicaEndSub").textContent    = "¿Quieres practicar de nuevo o hacer tu tiro único?";
-        modal.classList.remove("hidden");
-      }
+      // Mostrar directamente el modal de selección
+      var modoModal = document.getElementById("modoModal");
+      if (modoModal) modoModal.classList.remove("hidden");
     });
   }
 
