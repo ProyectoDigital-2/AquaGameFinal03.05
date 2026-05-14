@@ -1455,22 +1455,59 @@ function choosePromoPrize(branch, recharge) {
 }
 
 async function assignPromoPrize() {
-  const branch = getSelectedBranch();
-  // Recargar inventario desde Firebase antes de descontar
-  await _reloadBranchInventoryFromFirebase(branch.id);
+  const branch   = getSelectedBranch();
   const recharge = getRechargeConfig();
+
+  // 1. Leer inventario FRESCO de Firebase para elegir premio con stock real
+  await _reloadBranchInventoryFromFirebase(branch.id);
   const prizeKey = choosePromoPrize(branch, recharge);
   if (!prizeKey) {
-    state.promoAward = null;
+    state.promoAward       = null;
     state.promoOutcomeLabel = "Anotaste, pero esta sucursal ya no tiene premios disponibles para esta recarga.";
     return;
   }
-  // Descontar del inventario local y sincronizar a Firebase
-  const inv = getBranchInventory(branch);
-  inv[prizeKey] = Math.max(0, (inv[prizeKey] || 0) - 1);
-  setBranchInventory(branch, inv);
-  state.promoAward = { key: prizeKey, label: PROMO_PRIZES[prizeKey].label, branch: branch.name, rechargeAmount: recharge.amount };
+
+  // 2. Descontar ATÓMICAMENTE en Firebase: leer valor actual → restar 1 → escribir
+  //    Esto evita race conditions cuando dos usuarios ganan el mismo premio
+  const decremented = await _atomicDecrement(branch.id, prizeKey);
+
+  // 3. Actualizar cache local con el nuevo valor
+  const inv      = getBranchInventory(branch);
+  inv[prizeKey]  = decremented;
+  const localData = getStorageData();
+  if (!localData[branch.id]) localData[branch.id] = {};
+  localData[branch.id].inventory = inv;
+  saveBranchInventories(localData);
+  state._storageCache = null;
+
+  state.promoAward       = { key: prizeKey, label: PROMO_PRIZES[prizeKey].label, branch: branch.name, rechargeAmount: recharge.amount };
   state.promoOutcomeLabel = `Ganaste ${PROMO_PRIZES[prizeKey].label}.`;
+}
+
+// Lee el valor actual de UN campo desde Firebase, resta 1 y lo escribe de vuelta
+// Devuelve el nuevo valor (o el valor actual si falla)
+async function _atomicDecrement(branchId, prizeKey) {
+  try {
+    // Leer valor actual directo del campo
+    const resGet = await fetch(`${FB_URL}/inventario/${branchId}/${prizeKey}.json`);
+    const current = await resGet.json();
+    const currentVal = (typeof current === "number" && current > 0) ? current : 0;
+    const newVal     = Math.max(0, currentVal - 1);
+
+    // Escribir nuevo valor
+    await fetch(`${FB_URL}/inventario/${branchId}/${prizeKey}.json`, {
+      method:  "PUT",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify(newVal)
+    });
+    gsLog(`Inventario FB: ${branchId}/${prizeKey} ${currentVal} → ${newVal}`, "#8f8");
+    return newVal;
+  } catch(e) {
+    gsLog(`Decremento FB error: ${e.message}`, "#f44");
+    // Fallback: restar del cache local
+    const inv = getBranchInventory(getSelectedBranch());
+    return Math.max(0, (inv[prizeKey] || 0) - 1);
+  }
 }
 
 // Recarga el inventario de UNA sucursal desde Firebase al cache local
