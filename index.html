@@ -937,8 +937,8 @@ function codecDecode(raw) {
   return { sucId, amount, seq };
 }
 const PROMO_RECHARGES = [
-  { amount: 600,  label: "$600",  goalProbability: 0.82, weights: { hielera: 50, termos: 30, mascara: 20 } },
-  { amount: 1200, label: "$1200", goalProbability: 0.92, weights: { hielera: 30, termos: 20, mascara: 15, balon: 15, playera: 10, rompe: 10 } }
+  { amount: 600,  label: "$600",  goalProbability: 0.82, weights: { hielera: 1, termos: 1, mascara: 1 } },
+  { amount: 1200, label: "$1200", goalProbability: 0.92, weights: { hielera: 1, termos: 1, mascara: 1, balon: 1, playera: 1, rompe: 1 } }
 ];
 const PROMO_PRIZES = {
   termos:    { label: "Termos AquaChampions" },
@@ -1462,12 +1462,28 @@ function assignPromoPrize() {
     state.promoOutcomeLabel = "Anotaste, pero esta sucursal ya no tiene premios disponibles para esta recarga.";
     return;
   }
-  // Descontar del inventario persistido
+  // Descontar del inventario local
   const inv = getBranchInventory(branch);
   inv[prizeKey] = Math.max(0, (inv[prizeKey] || 0) - 1);
   setBranchInventory(branch, inv);
+  // Descontar del inventario en Firebase
+  _syncInventarioDecrement(branch.id, prizeKey, inv[prizeKey]);
   state.promoAward = { key: prizeKey, label: PROMO_PRIZES[prizeKey].label, branch: branch.name, rechargeAmount: recharge.amount };
   state.promoOutcomeLabel = `Ganaste ${PROMO_PRIZES[prizeKey].label}.`;
+}
+
+async function _syncInventarioDecrement(branchId, prizeKey, newValue) {
+  try {
+    const res = await fetch(`${FB_URL}/inventario/${branchId}/${prizeKey}.json`, {
+      method:  "PUT",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify(newValue)
+    });
+    const data = await res.json();
+    gsLog(`Inventario FB: ${branchId}/${prizeKey} → ${data}`, "#8f8");
+  } catch(e) {
+    gsLog(`Inventario FB error: ${e.message}`, "#f44");
+  }
 }
 
 function renderPromoSummary(message = "") {
