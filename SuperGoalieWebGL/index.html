@@ -7,6 +7,23 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <style>
+      /* Forzar canvas a llenar pantalla completa */
+      :fullscreen #unity-container,
+      :-webkit-full-screen #unity-container,
+      :-moz-full-screen #unity-container {
+        width: 100vw !important;
+        height: 100vh !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+      }
+      :fullscreen #unity-canvas,
+      :-webkit-full-screen #unity-canvas,
+      :-moz-full-screen #unity-canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
       #play-overlay {
         position: fixed;
         inset: 0;
