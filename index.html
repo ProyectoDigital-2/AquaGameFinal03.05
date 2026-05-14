@@ -3414,7 +3414,7 @@ const ADMIN_KEY = "Aquagol-2026";
 
 // Prize groups: some keys share the same "family" with choice
 const PRIZE_GROUPS = {
-  termos: { family: ["cilindro"], labels: ["AquaChampions"] },
+  termos: { family: ["termos"], labels: ["AquaChampions"] },
   playera:  { family: ["playera"],  labels: ["AquaChampions"] },
   rompe:    { family: ["rompe"],    labels: ["AquaChampions"] },
   hielera:  { family: ["hielera"], labels: ["AquaChampions"] },
@@ -3505,8 +3505,10 @@ function openAdminPanel() {
   var params = new URLSearchParams(window.location.search);
 
   // Restaurar estado guardado antes de ir a Unity
+  // (solo si NO es regreso de tiro real, que tiene su propio bloque de restauración)
   var saved = sessionStorage.getItem("aquaPromoState");
-  if (saved) {
+  var _esResultado = (params.get("resultado") === "gol" || params.get("resultado") === "fallo");
+  if (saved && !_esResultado) {
     try {
       var s = JSON.parse(saved);
       // NO borrar — se necesita para cada práctica nueva
@@ -3553,7 +3555,22 @@ function openAdminPanel() {
   if (resultado === "gol" || resultado === "fallo") {
     history.replaceState({}, "", window.location.pathname);
     document.addEventListener("DOMContentLoaded", function () {
-      // Restaurar estado y ejecutar finishMatch con el resultado correcto
+      // Restaurar estado explícitamente antes de finishMatch
+      var savedResult = sessionStorage.getItem("aquaPromoState");
+      if (savedResult) {
+        try {
+          var sr = JSON.parse(savedResult);
+          state.promoAccessEntry   = sr.promoAccessEntry;
+          state.promoAccessDecoded = sr.promoAccessDecoded;
+          state.branchId           = sr.branchId;
+          state.rechargeAmount     = sr.rechargeAmount;
+          state.promoTicket        = sr.promoTicket;
+          state.branchAccessCode   = sr.branchAccessCode || "";
+          state.mode               = "promo";
+          // Borrar sessionStorage después del tiro real
+          sessionStorage.removeItem("aquaPromoState");
+        } catch(e) { console.warn("Error restaurando estado resultado", e); }
+      }
       if (resultado === "gol") {
         state.promoScored = true;
         assignPromoPrize();
@@ -4004,7 +4021,6 @@ function launchUnity() {
   }));
 
   setTimeout(() => {
-    sessionStorage.removeItem("aquaPromoState"); // tiro real — ya no se necesita
     window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
   }, 1000);
 }
