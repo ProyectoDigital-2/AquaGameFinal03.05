@@ -3,52 +3,49 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | Super Goalie Basic</title>
+    <title>Aqua Champions 2026</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-  <style>
-    #play-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #000E1F;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-    }
-    #play-overlay img { width: 200px; max-width: 70%; }
-    #play-btn {
-      background: linear-gradient(135deg, #FF6B00, #e85d00);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 18px 48px;
-      font-size: 22px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 6px 24px rgba(255,107,0,0.6);
-      letter-spacing: 1px;
-      animation: pulse 1.8s infinite;
-    }
-    @keyframes pulse {
-      0%,100% { transform: scale(1); box-shadow: 0 6px 24px rgba(255,107,0,0.6); }
-      50%      { transform: scale(1.06); box-shadow: 0 10px 32px rgba(255,107,0,0.9); }
-    }
-    #play-subtitle { color: #aac; font-size: 14px; font-family: sans-serif; }
-  </style>
+    <style>
+      #play-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #000E1F;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      #play-btn {
+        background: linear-gradient(135deg, #FF6B00, #e85d00);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 18px 48px;
+        font-size: 22px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 6px 24px rgba(255,107,0,0.6);
+        letter-spacing: 1px;
+        animation: pulse 1.8s infinite;
+      }
+      @keyframes pulse {
+        0%,100% { transform: scale(1); box-shadow: 0 6px 24px rgba(255,107,0,0.6); }
+        50%      { transform: scale(1.06); box-shadow: 0 10px 32px rgba(255,107,0,0.9); }
+      }
+    </style>
   </head>
   <body>
     <!-- Pantalla de inicio -->
     <div id="play-overlay">
       <div style="color:#FF6B00;font-size:13px;font-family:sans-serif;letter-spacing:2px;font-weight:bold;">AQUA CHAMPIONS 2026</div>
       <button id="play-btn" onclick="startGame()">⚽ ¡Jugar!</button>
-
     </div>
 
     <div id="unity-container" class="unity-desktop">
-      <div style="display:flex;align-items:center;justify-content:center;padding:6px;background:#000;">
+      <div id="unity-top-bar" style="display:flex;align-items:center;justify-content:center;padding:6px;background:#000;">
         <button id="unity-fullscreen-button-custom" style="
           background: linear-gradient(135deg,#FF6B00,#e85d00);
           color: white;
@@ -64,7 +61,7 @@
           box-shadow: 0 4px 12px rgba(255,107,0,0.5);
         ">⛶ Pantalla Completa</button>
       </div>
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <canvas id="unity-canvas" tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -73,18 +70,31 @@
       </div>
       <div id="unity-warning"> </div>
       <div id="unity-footer" style="display:none">
-        <div id="unity-fullscreen-button" style="display:none"></div>
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
       </div>
     </div>
     <script>
       var canvas = document.querySelector("#unity-canvas");
+      var unityInstanceRef = null;
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
+      function startGame() {
+        // Fullscreen al click del usuario
+        var el = document.getElementById("unity-container");
+        if (el.requestFullscreen)            el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
+
+        // Ocultar overlay y barra superior
+        document.getElementById("play-overlay").style.display = "none";
+        document.getElementById("unity-top-bar").style.display = "none";
+
+        // Si Unity ya cargó, activar fullscreen también
+        if (unityInstanceRef) {
+          unityInstanceRef.SetFullscreen(1);
+        }
+      }
+
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -116,99 +126,48 @@
         productName: "Super Goalie Basic",
         productVersion: "0.1",
         showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
         canvas.style.width = "960px";
         canvas.style.height = "600px";
       }
 
       document.querySelector("#unity-loading-bar").style.display = "block";
 
-      // Mostrar overlay hasta que el usuario haga click
-      var unityReady = false;
-      var unityInstanceRef = null;
-
-      function startGame() {
-        // Fullscreen al click del usuario
-        var el = document.documentElement;
-        if (el.requestFullscreen)            el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
-
-        // Ocultar overlay
-        document.getElementById("play-overlay").style.display = "none";
-
-        // Si Unity ya cargó, listo. Si no, esperar.
-        if (unityInstanceRef) {
-          unityInstanceRef.SetFullscreen(1);
-        }
-      }
-
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                unityInstanceRef = unityInstance;
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-                document.querySelector("#unity-fullscreen-button-custom").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-                // Si el usuario ya hizo click antes de que cargara Unity
-                if (document.getElementById("play-overlay").style.display === "none") {
-                  unityInstance.SetFullscreen(1);
-                }
+        }).then((unityInstance) => {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          unityInstanceRef = unityInstance;
 
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+          document.querySelector("#unity-fullscreen-button").onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+          document.querySelector("#unity-fullscreen-button-custom").onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+
+          // Si el usuario ya hizo click antes de que cargara Unity
+          if (document.getElementById("play-overlay").style.display === "none") {
+            unityInstance.SetFullscreen(1);
+          }
+        }).catch((message) => {
+          alert(message);
+        });
+      };
 
       document.body.appendChild(script);
-
     </script>
   </body>
 </html>
