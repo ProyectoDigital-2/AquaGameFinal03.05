@@ -96,19 +96,16 @@
       var unityInstanceRef = null;
 
       function startGame() {
-        // Fullscreen al click del usuario
-        var el = document.getElementById("unity-container");
-        if (el.requestFullscreen)            el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
-
         // Ocultar overlay y barra superior
         document.getElementById("play-overlay").style.display = "none";
         document.getElementById("unity-top-bar").style.display = "none";
 
-        // Si Unity ya cargó, activar fullscreen también
+        // Usar SetFullscreen de Unity (el que sí funciona)
         if (unityInstanceRef) {
           unityInstanceRef.SetFullscreen(1);
+        } else {
+          // Unity aún no cargó — activar cuando esté listo
+          window._pendingFullscreen = true;
         }
       }
 
@@ -176,8 +173,9 @@
           };
 
           // Si el usuario ya hizo click antes de que cargara Unity
-          if (document.getElementById("play-overlay").style.display === "none") {
+          if (window._pendingFullscreen || document.getElementById("play-overlay").style.display === "none") {
             unityInstance.SetFullscreen(1);
+            window._pendingFullscreen = false;
           }
         }).catch((message) => {
           alert(message);
