@@ -215,6 +215,52 @@
         to   { transform: scale(1);   opacity: 1; }
       }
 
+      /* ── Espera de carga ── */
+      #waiting-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9997;
+        background: rgba(0, 10, 30, 0.92);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        backdrop-filter: blur(3px);
+      }
+
+      #waiting-overlay.active {
+        display: flex;
+      }
+
+      #waiting-overlay .loading-ball {
+        font-size: 52px;
+        animation: spinBall 1s linear infinite;
+      }
+
+      @keyframes spinBall {
+        from { transform: rotate(0deg);   }
+        to   { transform: rotate(360deg); }
+      }
+
+      #waiting-overlay p {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.4rem;
+        color: #ffaa00;
+        letter-spacing: 3px;
+        text-shadow: 0 0 16px rgba(255,170,0,0.6);
+        text-align: center;
+        margin: 0;
+      }
+
+      #waiting-overlay span {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 0.95rem;
+        color: #1a8fff;
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
       /* ── Ocultar título de Unity ── */
       #unity-build-title { display: none !important; }
     </style>
@@ -241,6 +287,13 @@
           <button id="btn-start" onclick="startCountdown()">¡JUGAR!</button>
         </div>
       </div>
+    </div>
+
+    <!-- 2b. Espera de carga -->
+    <div id="waiting-overlay">
+      <div class="loading-ball">⚽</div>
+      <p>CARGANDO PARTIDO...</p>
+      <span>La cuenta regresiva comenzará al terminar</span>
     </div>
 
     <!-- 3. Cuenta regresiva -->
@@ -286,9 +339,13 @@
       });
       checkOrientation(); // ejecutar al cargar
 
+      // ── Estado de carga ──
+      var unityLoaded = false;
+      var userClickedPlay = false;
+
       // ── Cuenta regresiva ──
-      function startCountdown() {
-        document.getElementById('intro-overlay').classList.remove('visible');
+      function tryStartCountdown() {
+        if (!unityLoaded || !userClickedPlay) return; // esperar ambos
         var overlay = document.getElementById('countdown-overlay');
         var numEl   = document.getElementById('countdown-number');
         overlay.classList.add('active');
@@ -311,6 +368,19 @@
             }, 800);
           }
         }, 1000);
+      }
+
+      function startCountdown() {
+        userClickedPlay = true;
+        document.getElementById('intro-overlay').classList.remove('visible');
+
+        // Si Unity ya cargó, iniciar cuenta; si no, mostrar espera
+        if (unityLoaded) {
+          tryStartCountdown();
+        } else {
+          // Mostrar pantalla de espera hasta que Unity cargue
+          document.getElementById('waiting-overlay').classList.add('active');
+        }
       }
 
       function triggerPulse(el) {
@@ -376,6 +446,38 @@
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
         }).then(function(unityInstance) {
           document.querySelector("#unity-loading-bar").style.display = "none";
+
+          // ── Desbloquear audio en iOS/iPad ──
+          // iOS requiere un gesto del usuario para iniciar AudioContext.
+          // Creamos un AudioContext silencioso y lo reanudamos en el primer
+          // toque, lo que desbloquea todo el audio de Unity de golpe.
+          var AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            var audioCtx = new AudioCtx();
+            function unlockAudio() {
+              if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+              }
+              // Reproducir buffer silencioso para forzar desbloqueo en Safari
+              var buf = audioCtx.createBuffer(1, 1, 22050);
+              var src = audioCtx.createBufferSource();
+              src.buffer = buf;
+              src.connect(audioCtx.destination);
+              src.start(0);
+              document.removeEventListener('touchstart', unlockAudio);
+              document.removeEventListener('touchend',   unlockAudio);
+              document.removeEventListener('click',      unlockAudio);
+            }
+            document.addEventListener('touchstart', unlockAudio, { once: true });
+            document.addEventListener('touchend',   unlockAudio, { once: true });
+            document.addEventListener('click',      unlockAudio, { once: true });
+          }
+
+          // ── Marcar Unity como listo ──
+          unityLoaded = true;
+          document.getElementById('waiting-overlay').classList.remove('active');
+          tryStartCountdown();
+
           document.querySelector("#unity-fullscreen-button").onclick = function() {
             unityInstance.SetFullscreen(1);
           };
