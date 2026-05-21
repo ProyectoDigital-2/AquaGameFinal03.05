@@ -1,13 +1,216 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html lang="es">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | Super Goalie Basic</title>
+    <title>Super Goalie</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <style>
+      /* ── Overlay de introducción ── */
+      #intro-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0, 10, 30, 0.88);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      #intro-box {
+        background: linear-gradient(145deg, #050e1f, #0a1a3a);
+        border: 3px solid #ffaa00;
+        border-radius: 20px;
+        padding: 48px 56px;
+        text-align: center;
+        max-width: 480px;
+        width: 90%;
+        box-shadow:
+          0 0 0 1px #1a5aff44,
+          0 0 40px rgba(255, 170, 0, 0.35),
+          0 0 80px rgba(26, 90, 255, 0.2),
+          inset 0 0 40px rgba(26, 90, 255, 0.05);
+        animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes popIn {
+        from { transform: scale(0.7); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+      }
+
+      #intro-box .ball-icon {
+        font-size: 56px;
+        margin-bottom: 12px;
+        animation: bounce 1s ease infinite alternate;
+      }
+
+      @keyframes bounce {
+        from { transform: translateY(0); }
+        to   { transform: translateY(-10px); }
+      }
+
+      #intro-box h1 {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2.2rem;
+        color: #ffaa00;
+        letter-spacing: 3px;
+        margin: 0 0 16px;
+        text-shadow: 0 0 20px rgba(255, 170, 0, 0.7);
+      }
+
+      #intro-box p {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1.25rem;
+        color: #ccd9ff;
+        line-height: 1.6;
+        margin: 0 0 32px;
+      }
+
+      #intro-box p span {
+        color: #1a8fff;
+        font-size: 1.4rem;
+        text-shadow: 0 0 12px rgba(26, 143, 255, 0.6);
+      }
+
+      #btn-start {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.4rem;
+        letter-spacing: 3px;
+        color: #fff;
+        background: linear-gradient(135deg, #ffaa00, #ff8800);
+        border: 2px solid #1a5aff;
+        border-radius: 50px;
+        padding: 14px 48px;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 24px rgba(255, 170, 0, 0.5), 0 0 0 2px #1a5aff33;
+      }
+
+      #btn-start:hover {
+        transform: scale(1.06);
+        box-shadow: 0 6px 32px rgba(255, 170, 0, 0.7), 0 0 0 3px #1a5affaa;
+      }
+
+      /* ── Cuenta regresiva ── */
+      #countdown-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 10, 30, 0.6);
+        backdrop-filter: blur(2px);
+      }
+
+      #countdown-overlay.active {
+        display: flex;
+      }
+
+      #countdown-number {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 18vw;
+        color: #fff;
+        text-shadow:
+          0 0 40px rgba(255, 170, 0, 0.9),
+          0 0 80px rgba(26, 90, 255, 0.5);
+        animation: none;
+        line-height: 1;
+      }
+
+      #countdown-number.pulse {
+        animation: countPulse 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      @keyframes countPulse {
+        from { transform: scale(1.8); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+      }
+
+      /* ── Girar dispositivo ── */
+      #rotate-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: #050e1f;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+
+      #rotate-overlay .rotate-icon {
+        font-size: 72px;
+        animation: rotatePhone 1.5s ease-in-out infinite;
+      }
+
+      @keyframes rotatePhone {
+        0%   { transform: rotate(0deg);   }
+        40%  { transform: rotate(90deg);  }
+        60%  { transform: rotate(90deg);  }
+        100% { transform: rotate(0deg);   }
+      }
+
+      #rotate-overlay p {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.6rem;
+        color: #ffaa00;
+        letter-spacing: 3px;
+        text-shadow: 0 0 20px rgba(255,170,0,0.6);
+        text-align: center;
+        padding: 0 24px;
+      }
+
+      #rotate-overlay p span {
+        display: block;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
+        color: #1a8fff;
+        letter-spacing: 1px;
+        margin-top: 6px;
+      }
+
+      /* ── Ocultar título de Unity ── */
+      #unity-build-title {
+        display: none !important;
+      }
+    </style>
   </head>
   <body>
+
+    <!-- Overlay de instrucciones -->
+    <div id="intro-overlay">
+      <div id="intro-box">
+        <div class="ball-icon">⚽</div>
+        <h1>¡A PATEAR!</h1>
+        <p>
+          <span>Pulsa en la pantalla</span><br>
+          donde quieras colocar el tiro.<br>
+          ¡Apunta bien y marca gol!
+        </p>
+        <button id="btn-start" onclick="startCountdown()">¡JUGAR!</button>
+      </div>
+    </div>
+
+    <!-- Girar dispositivo -->
+    <div id="rotate-overlay">
+      <div class="rotate-icon">📱</div>
+      <p>
+        GIRA TU DISPOSITIVO
+        <span>El juego se ve mejor en horizontal</span>
+      </p>
+    </div>
+
+    <!-- Cuenta regresiva -->
+    <div id="countdown-overlay">
+      <div id="countdown-number">3</div>
+    </div>
+
+    <!-- Canvas de Unity -->
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
@@ -23,15 +226,55 @@
         <div id="unity-build-title">Super Goalie Basic</div>
       </div>
     </div>
+
     <script>
+      // ── Girar dispositivo ──
+      function checkOrientation() {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (!isMobile) return;
+        const isPortrait = window.innerHeight > window.innerWidth;
+        document.getElementById('rotate-overlay').style.display = isPortrait ? 'flex' : 'none';
+      }
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', checkOrientation);
+      checkOrientation();
+
+      // ── Cuenta regresiva ──
+      function startCountdown() {
+        document.getElementById('intro-overlay').style.display = 'none';
+        const overlay = document.getElementById('countdown-overlay');
+        const numEl   = document.getElementById('countdown-number');
+        overlay.classList.add('active');
+
+        let count = 3;
+        numEl.textContent = count;
+        triggerPulse(numEl);
+
+        const interval = setInterval(() => {
+          count--;
+          if (count > 0) {
+            numEl.textContent = count;
+            triggerPulse(numEl);
+          } else {
+            clearInterval(interval);
+            numEl.textContent = '¡YA!';
+            triggerPulse(numEl);
+            setTimeout(() => {
+              overlay.classList.remove('active');
+            }, 800);
+          }
+        }, 1000);
+      }
+
+      function triggerPulse(el) {
+        el.classList.remove('pulse');
+        void el.offsetWidth; // reflow para reiniciar animación
+        el.classList.add('pulse');
+      }
+
+      // ── Unity loader ──
       var canvas = document.querySelector("#unity-canvas");
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -63,47 +306,16 @@
         productName: "Super Goalie Basic",
         productVersion: "0.1",
         showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
         canvas.style.width = "960px";
         canvas.style.height = "600px";
       }
@@ -115,19 +327,17 @@
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+        }).then((unityInstance) => {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          document.querySelector("#unity-fullscreen-button").onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+        }).catch((message) => {
+          alert(message);
+        });
+      };
 
       document.body.appendChild(script);
-
     </script>
   </body>
 </html>
