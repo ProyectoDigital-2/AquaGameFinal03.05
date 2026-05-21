@@ -229,7 +229,10 @@
 
     <script>
       // ── Girar dispositivo ──
+      var rotateEnabled = false;
+
       function checkOrientation() {
+        if (!rotateEnabled) return;
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (!isMobile) return;
         const isPortrait = window.innerHeight > window.innerWidth;
@@ -237,10 +240,11 @@
       }
       window.addEventListener('resize', checkOrientation);
       window.addEventListener('orientationchange', checkOrientation);
-      checkOrientation();
 
       // ── Cuenta regresiva ──
       function startCountdown() {
+        rotateEnabled = true;
+        checkOrientation();
         document.getElementById('intro-overlay').style.display = 'none';
         const overlay = document.getElementById('countdown-overlay');
         const numEl   = document.getElementById('countdown-number');
