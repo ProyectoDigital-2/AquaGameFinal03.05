@@ -6,7 +6,7 @@
 body {
   margin: 0;
   background: #000;
-  overflow: hidden;
+  overflow: auto;
 }
 
 #unity-container {
@@ -71,10 +71,7 @@ body {
 #pregameModal {
   position: fixed; inset: 0; z-index: 9997;
   background: rgba(0,10,28,.96);
-  display: flex; align-items: flex-start; justify-content: center;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 16px 0 32px;
+  display: flex; align-items: center; justify-content: center;
 }
 #pregameModal.hidden { display: none; }
 .pregame-card {
@@ -86,7 +83,6 @@ body {
   text-align: center;
   box-shadow: 0 0 50px rgba(10,146,211,.15);
   font-family: Arial, sans-serif;
-  margin: auto;
 }
 .pregame-card img {
   height: 48px; margin-bottom: 16px;
@@ -161,7 +157,7 @@ body{
   min-height:100vh;
   background:linear-gradient(180deg,#072540 0%,#051828 100%);
   position:relative;
-  overflow:hidden;
+  overflow:auto;
   -webkit-tap-highlight-color:transparent;
   user-select:none;
 }
