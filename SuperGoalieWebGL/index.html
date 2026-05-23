@@ -571,8 +571,6 @@
         document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
-        // Reducir pixel ratio en móvil — menos carga GPU, sin afectar precisión del Raycast
-        config.devicePixelRatio = 1;
       } else {
         canvas.style.width  = "960px";
         canvas.style.height = "600px";
