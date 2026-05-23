@@ -71,7 +71,10 @@ body {
 #pregameModal {
   position: fixed; inset: 0; z-index: 9997;
   background: rgba(0,10,28,.96);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-start; justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 0 32px;
 }
 #pregameModal.hidden { display: none; }
 .pregame-card {
@@ -83,6 +86,7 @@ body {
   text-align: center;
   box-shadow: 0 0 50px rgba(10,146,211,.15);
   font-family: Arial, sans-serif;
+  margin: auto;
 }
 .pregame-card img {
   height: 48px; margin-bottom: 16px;
