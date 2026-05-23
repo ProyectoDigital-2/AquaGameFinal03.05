@@ -398,8 +398,8 @@
         if (screen.orientation && screen.orientation.unlock) {
           screen.orientation.unlock();
         }
-        // Regresar a la página anterior (el index principal)
-        history.back();
+        // Navegar al menú principal (un nivel arriba de SuperGoalieWebGL/)
+        window.location.href = "../index.html";
       }
 
       // ── Mostrar overlay de fin y pedir girar ───────────────────────────
