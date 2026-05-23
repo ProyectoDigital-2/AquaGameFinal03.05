@@ -468,9 +468,7 @@
         userClickedPlay = true;
         document.getElementById('intro-overlay').classList.remove('visible');
 
-        // Entrar a pantalla completa al presionar JUGAR
-        entrarFullscreen();
-        // SetFullscreen de Unity (funciona mejor en PC)
+        // SetFullscreen de Unity (compatible PC y móvil)
         if (unityInstance) unityInstance.SetFullscreen(1);
 
         if (unityLoaded) {
