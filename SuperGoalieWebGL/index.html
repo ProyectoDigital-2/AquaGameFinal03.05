@@ -315,8 +315,9 @@
           <span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>
           ¡Apunta bien y marca gol!
         </p>
-        <div class="btn-wrap">
+        <div class="btn-wrap" style="flex-direction:column;gap:12px;">
           <button id="btn-start" onclick="startCountdown()">¡JUGAR!</button>
+          <button id="btn-menu" onclick="irAlMenu()" style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:#1a8fff;background:transparent;border:2px solid #1a8fff;border-radius:50px;padding:8px 32px;cursor:pointer;touch-action:manipulation;transition:transform 0.15s;">← VOLVER AL MENÚ</button>
         </div>
       </div>
     </div>
@@ -468,13 +469,16 @@
         userClickedPlay = true;
         document.getElementById('intro-overlay').classList.remove('visible');
 
-        // SetFullscreen de Unity (compatible PC y móvil)
-        if (unityInstance) unityInstance.SetFullscreen(1);
-
         if (unityLoaded) {
+          // Mostrar cuenta regresiva primero
           tryStartCountdown();
+          // Entrar a fullscreen al terminar la cuenta (después de ~3.8s)
+          setTimeout(function() {
+            if (unityInstance) unityInstance.SetFullscreen(1);
+          }, 3800);
         } else {
           document.getElementById('waiting-overlay').classList.add('active');
+          // Fullscreen se activará cuando Unity cargue
         }
       }
 
