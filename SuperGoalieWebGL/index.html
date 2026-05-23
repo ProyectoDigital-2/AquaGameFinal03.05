@@ -232,7 +232,7 @@
       #countdown-overlay {
         position: fixed;
         inset: 0;
-        z-index: 9998;
+        z-index: 999999;
         display: none;
         align-items: center;
         justify-content: center;
@@ -501,15 +501,16 @@
         document.getElementById('intro-overlay').classList.remove('visible');
 
         if (!isAndroid && !isIOS) {
-          // PC: fullscreen primero, luego esperar a que esté listo y arrancar cuenta
-          if (unityInstance) unityInstance.SetFullscreen(1);
-          setTimeout(function() {
-            if (unityLoaded) {
-              tryStartCountdown();
-            } else {
-              document.getElementById('waiting-overlay').classList.add('active');
-            }
-          }, 600); // esperar 600ms a que fullscreen se complete
+          // PC: mostrar cuenta primero, luego fullscreen al terminar
+          if (unityLoaded) {
+            tryStartCountdown();
+            // Fullscreen después de que termina la cuenta (3 + 0.8s del "¡YA!")
+            setTimeout(function() {
+              if (unityInstance) unityInstance.SetFullscreen(1);
+            }, 3800);
+          } else {
+            document.getElementById('waiting-overlay').classList.add('active');
+          }
         } else {
           // Android e iOS: ocultar barra y arrancar cuenta sin delay
           if (isAndroid || isIOS) window.scrollTo(0, 1);
