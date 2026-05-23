@@ -4,12 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Super Goalie</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <style>
 
       * { box-sizing: border-box; }
+
+      /* ── Fondo negro para iOS ── */
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+      }
 
       /* ── Girar dispositivo AL INICIO (portrait → pide girar) ── */
       #rotate-overlay {
@@ -412,20 +422,39 @@
           return;
         }
 
-        // En móvil: mostrar overlay con animación y botón continuar
+        // ── Intentar forzar portrait en Android ───────────────────────────
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock("portrait").catch(function() {
+            // Si falla (iOS u otro), mostrar overlay manual
+          });
+        }
+
+        // Mostrar overlay con animación y botón continuar
         document.getElementById('end-rotate-overlay').classList.add('visible');
 
-        // Si el usuario ya está en portrait, habilitar continuar automático
-        // Si gira solo también lo detectamos
-        window.addEventListener('orientationchange', function onEndOrient() {
-          setTimeout(function() {
-            var portrait = window.innerHeight > window.innerWidth;
-            if (portrait) {
-              window.removeEventListener('orientationchange', onEndOrient);
-              // Ya giró solo, el botón sigue visible por si quiere presionarlo
-            }
-          }, 200);
-        });
+        // Detectar si el usuario ya giró o gira el teléfono → ir al menú automático
+        function checkPortraitAndGo() {
+          var portrait = window.innerHeight > window.innerWidth;
+          if (portrait) {
+            window.removeEventListener('orientationchange', onEndOrient);
+            window.removeEventListener('resize', checkPortraitAndGo);
+            // Pequeño delay para que la animación se vea
+            setTimeout(function() {
+              document.getElementById('end-rotate-overlay').classList.remove('visible');
+              irAlMenu();
+            }, 800);
+          }
+        }
+
+        function onEndOrient() {
+          setTimeout(checkPortraitAndGo, 200);
+        }
+
+        window.addEventListener('orientationchange', onEndOrient);
+        window.addEventListener('resize', checkPortraitAndGo);
+
+        // Verificar si ya está en portrait al momento de llamar
+        checkPortraitAndGo();
       }
 
       // ── Estas funciones las llama Unity desde C# (DllImport __Internal) ─
