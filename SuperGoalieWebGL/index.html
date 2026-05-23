@@ -354,14 +354,20 @@
       var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
       // ── Orientación al inicio ──────────────────────────────────────────
+      // El intro-overlay solo se muestra cuando Unity ya terminó de cargar
       function checkOrientation() {
         if (!isMobile) {
-          document.getElementById('intro-overlay').classList.add('visible');
+          // En desktop: solo mostrar intro si Unity ya cargó
+          if (unityLoaded) {
+            document.getElementById('intro-overlay').classList.add('visible');
+          }
           return;
         }
         var portrait = window.innerHeight > window.innerWidth;
+        // rotate-overlay siempre visible si está en portrait
         document.getElementById('rotate-overlay').classList.toggle('visible', portrait);
-        document.getElementById('intro-overlay').classList.toggle('visible', !portrait);
+        // intro-overlay solo si landscape Y Unity ya cargó
+        document.getElementById('intro-overlay').classList.toggle('visible', !portrait && unityLoaded);
       }
 
       window.addEventListener('resize', checkOrientation);
@@ -427,8 +433,9 @@
       function NotifyPracticaTerminada() { mostrarFinDeJuego(); }
 
       // ── Estado de carga ────────────────────────────────────────────────
-      var unityLoaded    = false;
+      var unityLoaded     = false;
       var userClickedPlay = false;
+      var unityInstance   = null; // referencia global para SetFullscreen
 
       // ── Cuenta regresiva ───────────────────────────────────────────────
       function tryStartCountdown() {
@@ -463,6 +470,8 @@
 
         // Entrar a pantalla completa al presionar JUGAR
         entrarFullscreen();
+        // SetFullscreen de Unity (funciona mejor en PC)
+        if (unityInstance) unityInstance.SetFullscreen(1);
 
         if (unityLoaded) {
           tryStartCountdown();
@@ -532,7 +541,8 @@
       script.onload = function() {
         createUnityInstance(canvas, config, function(progress) {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-        }).then(function(unityInstance) {
+        }).then(function(ui) {
+          unityInstance = ui; // guardar globalmente
           document.querySelector("#unity-loading-bar").style.display = "none";
 
           // ── Desbloquear audio en iOS/iPad ──
@@ -558,6 +568,7 @@
           // ── Unity listo ──
           unityLoaded = true;
           document.getElementById('waiting-overlay').classList.remove('active');
+          checkOrientation();
           tryStartCountdown();
 
           document.querySelector("#unity-fullscreen-button").onclick = function() {
