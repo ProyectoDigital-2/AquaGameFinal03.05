@@ -500,22 +500,24 @@
         userClickedPlay = true;
         document.getElementById('intro-overlay').classList.remove('visible');
 
-        if (unityLoaded) {
-          // Mostrar cuenta regresiva primero
-          tryStartCountdown();
+        if (!isAndroid && !isIOS) {
+          // PC: fullscreen primero, luego esperar a que esté listo y arrancar cuenta
+          if (unityInstance) unityInstance.SetFullscreen(1);
           setTimeout(function() {
-            if (isAndroid) {
-              // Android: solo ocultar barra del navegador, sin fullscreen para evitar lag
-              window.scrollTo(0, 1);
-            } else if (!isIOS) {
-              // PC: fullscreen real de Unity
-              if (unityInstance) unityInstance.SetFullscreen(1);
+            if (unityLoaded) {
+              tryStartCountdown();
+            } else {
+              document.getElementById('waiting-overlay').classList.add('active');
             }
-            // iOS: solo scrollTo para ocultar barra (ya se hace en el meta viewport)
-            if (isIOS) window.scrollTo(0, 1);
-          }, 3800);
+          }, 600); // esperar 600ms a que fullscreen se complete
         } else {
-          document.getElementById('waiting-overlay').classList.add('active');
+          // Android e iOS: ocultar barra y arrancar cuenta sin delay
+          if (isAndroid || isIOS) window.scrollTo(0, 1);
+          if (unityLoaded) {
+            tryStartCountdown();
+          } else {
+            document.getElementById('waiting-overlay').classList.add('active');
+          }
         }
       }
 
