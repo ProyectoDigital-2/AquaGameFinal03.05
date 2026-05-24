@@ -297,6 +297,64 @@
       }
 
       #unity-build-title { display: none !important; }
+      /* Ocultar loading bar original de Unity */
+      #unity-loading-bar { display: none !important; }
+      #unity-footer { display: none !important; }
+
+      /* ── Pantalla de carga personalizada ── */
+      #custom-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 99998;
+        background: #050e1f;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        transition: opacity 0.5s ease;
+      }
+      #custom-loading.oculto {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #custom-loading .ball-spin {
+        font-size: 72px;
+        animation: ballSpin 1s linear infinite;
+        filter: drop-shadow(0 0 20px rgba(255,170,0,0.6));
+      }
+      @keyframes ballSpin {
+        from { transform: rotate(0deg);   }
+        to   { transform: rotate(360deg); }
+      }
+      #custom-loading h2 {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.8rem;
+        color: #ffaa00;
+        letter-spacing: 4px;
+        text-shadow: 0 0 20px rgba(255,170,0,0.6);
+        margin: 0;
+      }
+      #custom-loading .progress-wrap {
+        width: 220px;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      #custom-loading .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #ffaa00, #ff8800);
+        border-radius: 10px;
+        transition: width 0.3s ease;
+      }
+      #custom-loading span {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 0.9rem;
+        color: #1a8fff;
+        letter-spacing: 1px;
+      }
     </style>
   </head>
   <body>
@@ -330,6 +388,16 @@
           <button id="btn-menu" onclick="irAlMenu()" style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:#1a8fff;background:transparent;border:2px solid #1a8fff;border-radius:50px;padding:8px 32px;cursor:pointer;touch-action:manipulation;transition:transform 0.15s;">← VOLVER AL MENÚ</button>
         </div>
       </div>
+    </div>
+
+    <!-- 3b. Pantalla de carga personalizada -->
+    <div id="custom-loading">
+      <div class="ball-spin">⚽</div>
+      <h2>CARGANDO...</h2>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="custom-progress"></div>
+      </div>
+      <span></span>
     </div>
 
     <!-- 4. Espera de carga -->
@@ -470,8 +538,13 @@
       var unityInstance   = null; // referencia global para SetFullscreen
 
       // ── Cuenta regresiva ───────────────────────────────────────────────
+      var countdownRunning = false; // evitar doble ejecución
+
       function tryStartCountdown() {
         if (!unityLoaded || !userClickedPlay) return;
+        if (countdownRunning) return; // ya está corriendo
+        countdownRunning = true;
+
         var overlay = document.getElementById('countdown-overlay');
         var numEl   = document.getElementById('countdown-number');
         overlay.classList.add('active');
@@ -491,6 +564,7 @@
             triggerPulse(numEl);
             setTimeout(function() {
               overlay.classList.remove('active');
+              countdownRunning = false; // reset para próximo tiro
             }, 800);
           }
         }, 1000);
@@ -500,26 +574,20 @@
         userClickedPlay = true;
         document.getElementById('intro-overlay').classList.remove('visible');
 
-        if (!isAndroid && !isIOS) {
-          // PC: mostrar cuenta primero, luego fullscreen al terminar
-          if (unityLoaded) {
-            tryStartCountdown();
-            // Fullscreen después de que termina la cuenta (3 + 0.8s del "¡YA!")
-            setTimeout(function() {
-              if (unityInstance) unityInstance.SetFullscreen(1);
-            }, 3800);
+        if (isAndroid || isIOS) window.scrollTo(0, 1);
+
+        if (unityLoaded) {
+          // Unity ya cargó — arrancar cuenta inmediatamente
+          if (!isAndroid && !isIOS) {
+            // PC: fullscreen y luego cuenta
+            if (unityInstance) unityInstance.SetFullscreen(1);
+            setTimeout(function() { tryStartCountdown(); }, 400);
           } else {
-            document.getElementById('waiting-overlay').classList.add('active');
-          }
-        } else {
-          // Android e iOS: ocultar barra y arrancar cuenta sin delay
-          if (isAndroid || isIOS) window.scrollTo(0, 1);
-          if (unityLoaded) {
             tryStartCountdown();
-          } else {
-            document.getElementById('waiting-overlay').classList.add('active');
           }
         }
+        // Si Unity aún no cargó: custom-loading sigue visible
+        // Al terminar de cargar, tryStartCountdown() se llama automáticamente
       }
 
       function triggerPulse(el) {
@@ -582,10 +650,18 @@
       script.src = loaderUrl;
       script.onload = function() {
         createUnityInstance(canvas, config, function(progress) {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+          // Actualizar barra de progreso personalizada
+          var pct = Math.round(progress * 100);
+          document.getElementById('custom-progress').style.width = pct + '%';
+          var span = document.querySelector('#custom-loading span');
+          if (span) {
+            if (pct < 30) span.textContent = 'Cargando recursos...';
+            else if (pct < 60) span.textContent = 'Preparando el campo...';
+            else if (pct < 90) span.textContent = 'Calentando al portero...';
+            else span.textContent = '¡Casi listo!';
+          }
         }).then(function(ui) {
           unityInstance = ui; // guardar globalmente
-          document.querySelector("#unity-loading-bar").style.display = "none";
 
           // ── Desbloquear audio en iOS/iPad ──
           var AudioCtx = window.AudioContext || window.webkitAudioContext;
