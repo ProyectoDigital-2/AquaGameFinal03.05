@@ -121,11 +121,8 @@
        3. CUENTA REGRESIVA
     ══════════════════════════════════════ */
     #screen-countdown {
-      position: fixed; inset: 0; z-index: 200;
-      background: rgba(5,14,31,0.7);
-      display: none;
+      width: 100%;
       align-items: center; justify-content: center;
-      backdrop-filter: blur(2px);
     }
     #countdown-num {
       font-family: 'Bebas Neue', sans-serif;
@@ -224,18 +221,20 @@
     <div class="bar-wrap"><div class="bar-fill" id="bar-fill"></div></div>
   </div>
 
-  <!-- 2. Menú Jugar -->
+  <!-- 2. Menú Jugar + Cuenta regresiva -->
   <div id="screen-menu">
-    <div class="ball-icon">⚽</div>
-    <h1>¡A PATEAR!</h1>
-    <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
-    <button id="btn-jugar">¡JUGAR!</button>
-    <button id="btn-menu">← VOLVER AL MENÚ</button>
-  </div>
-
-  <!-- 3. Cuenta regresiva -->
-  <div id="screen-countdown">
-    <div id="countdown-num">3</div>
+    <!-- Contenido del menú -->
+    <div id="menu-content" style="display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:400px;">
+      <div class="ball-icon">⚽</div>
+      <h1>¡A PATEAR!</h1>
+      <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
+      <button id="btn-jugar">¡JUGAR!</button>
+      <button id="btn-menu">← VOLVER AL MENÚ</button>
+    </div>
+    <!-- Cuenta regresiva (oculta hasta dar click JUGAR) -->
+    <div id="screen-countdown" style="display:none;flex-direction:column;align-items:center;justify-content:center;">
+      <div id="countdown-num">3</div>
+    </div>
   </div>
 
   <!-- 4. Girar al inicio -->
@@ -353,11 +352,8 @@
     function NotifyPracticaTerminada() { mostrarFinDeJuego(); }
 
     // ── Cuenta regresiva ─────────────────────────────────────────
-    function iniciarCuenta() {
+    function iniciarCuentaYJugar() {
       var el = document.getElementById('countdown-num');
-      var sc = document.getElementById('screen-countdown');
-      sc.style.display = 'flex';
-
       var n = 3;
       el.textContent = n;
       pulsar(el);
@@ -372,8 +368,11 @@
           el.textContent = '¡YA!';
           pulsar(el);
           setTimeout(function() {
-            sc.style.display = 'none';
-            el.textContent = '3'; // reset para próxima vez
+            // Ocultar todo y entrar al juego
+            hide('screen-menu');
+            hide('screen-countdown');
+            el.textContent = '3'; // reset
+            entrarFullscreen();
           }, 800);
         }
       }, 1000);
@@ -387,10 +386,11 @@
 
     // ── Botón JUGAR ──────────────────────────────────────────────
     document.getElementById('btn-jugar').addEventListener('click', function() {
-      hide('screen-menu');
-      entrarFullscreen();
-      // Pequeño delay para que fullscreen se active antes de la cuenta
-      setTimeout(iniciarCuenta, isAndroid || isIOS ? 100 : 500);
+      // Ocultar botones del menú, mostrar cuenta regresiva en su lugar
+      document.getElementById('menu-content').style.display = 'none';
+      document.getElementById('screen-countdown').style.display = 'flex';
+      
+      iniciarCuentaYJugar();
     });
 
     // ── Botón VOLVER AL MENÚ ─────────────────────────────────────
