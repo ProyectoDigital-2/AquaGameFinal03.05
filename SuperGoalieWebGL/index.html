@@ -349,12 +349,7 @@
         border-radius: 10px;
         transition: width 0.3s ease;
       }
-      #custom-loading span {
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 0.9rem;
-        color: #1a8fff;
-        letter-spacing: 1px;
-      }
+
     </style>
   </head>
   <body>
@@ -397,7 +392,6 @@
       <div class="progress-wrap">
         <div class="progress-bar" id="custom-progress"></div>
       </div>
-      <span></span>
     </div>
 
     <!-- 4. Espera de carga -->
@@ -650,16 +644,8 @@
       script.src = loaderUrl;
       script.onload = function() {
         createUnityInstance(canvas, config, function(progress) {
-          // Actualizar barra de progreso personalizada
-          var pct = Math.round(progress * 100);
-          document.getElementById('custom-progress').style.width = pct + '%';
-          var span = document.querySelector('#custom-loading span');
-          if (span) {
-            if (pct < 30) span.textContent = 'Cargando recursos...';
-            else if (pct < 60) span.textContent = 'Preparando el campo...';
-            else if (pct < 90) span.textContent = 'Calentando al portero...';
-            else span.textContent = '¡Casi listo!';
-          }
+          // Solo actualizar barra visual
+          document.getElementById('custom-progress').style.width = Math.round(progress * 100) + '%';
         }).then(function(ui) {
           unityInstance = ui; // guardar globalmente
 
@@ -686,8 +672,17 @@
           // ── Unity listo ──
           unityLoaded = true;
           document.getElementById('waiting-overlay').classList.remove('active');
+
+          // Ocultar pantalla de carga con fade
+          var cl = document.getElementById('custom-loading');
+          if (cl) {
+            cl.classList.add('oculto');
+            setTimeout(function() { cl.style.display = 'none'; }, 500);
+          }
+
+          // Mostrar menú o arrancar cuenta si ya clickeó JUGAR
           checkOrientation();
-          tryStartCountdown();
+          if (userClickedPlay) tryStartCountdown();
 
           document.querySelector("#unity-fullscreen-button").onclick = function() {
             // En Android evitar fullscreen por lag; en PC e iOS usar SetFullscreen
