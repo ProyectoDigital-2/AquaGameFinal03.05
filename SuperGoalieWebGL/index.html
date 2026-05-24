@@ -640,7 +640,7 @@
         canvas.style.height = "600px";
       }
 
-      document.querySelector("#unity-loading-bar").style.display = "block";
+      // Loading bar de Unity oculto — usamos custom-loading
 
       var script = document.createElement("script");
       script.src = loaderUrl;
@@ -683,6 +683,8 @@
           }
 
           // Solo mostrar el menú — esperar a que el usuario presione JUGAR
+          userClickedPlay = false;  // reset para que el botón JUGAR funcione
+          countdownRunning = false; // reset de la cuenta
           checkOrientation();
 
           document.querySelector("#unity-fullscreen-button").onclick = function() {
