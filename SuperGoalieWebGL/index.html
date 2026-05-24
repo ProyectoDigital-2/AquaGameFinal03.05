@@ -316,6 +316,25 @@
       else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     }
 
+    // Detectar ESC (salida de fullscreen) y mostrar menú de nuevo
+    document.addEventListener('fullscreenchange', function() {
+      if (!document.fullscreenElement && unityLoaded) {
+        // Salió de fullscreen (ESC) — mostrar menú
+        document.getElementById('menu-content').style.display = 'flex';
+        document.getElementById('screen-countdown').style.display = 'none';
+        document.getElementById('countdown-num').textContent = '3';
+        checkOrientacion();
+      }
+    });
+    document.addEventListener('webkitfullscreenchange', function() {
+      if (!document.webkitFullscreenElement && unityLoaded) {
+        document.getElementById('menu-content').style.display = 'flex';
+        document.getElementById('screen-countdown').style.display = 'none';
+        document.getElementById('countdown-num').textContent = '3';
+        checkOrientacion();
+      }
+    });
+
     // ── Menú al terminar ─────────────────────────────────────────
     function irAlMenu() {
       salirFullscreen();
@@ -440,6 +459,8 @@
       canvas.style.width  = '960px';
       canvas.style.height = '600px';
     }
+    // Ocultar canvas hasta que Unity cargue completamente
+    canvas.style.visibility = 'hidden';
 
     var script = document.createElement('script');
     script.src = loaderUrl;
@@ -466,7 +487,8 @@
           document.addEventListener('click', unlock, {once:true});
         }
 
-        // Ocultar pantalla de carga y mostrar menú
+        // Mostrar canvas (ya cargó) y ocultar pantalla de carga
+        canvas.style.visibility = 'visible';
         var loading = document.getElementById('screen-loading');
         loading.style.transition = 'opacity 0.5s';
         loading.style.opacity = '0';
