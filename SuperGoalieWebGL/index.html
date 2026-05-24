@@ -275,6 +275,7 @@
     var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     var unityInstance = null;
     var unityLoaded = false;
+    var juegoActivo = false; // true cuando el juego está corriendo
 
     // ── Pantallas ────────────────────────────────────────────────
     function show(id) { document.getElementById(id).style.display = 'flex'; }
@@ -284,16 +285,24 @@
     function checkOrientacion() {
       if (!isMobile) {
         hide('screen-rotate');
-        show('screen-menu');
+        if (!juegoActivo) show('screen-menu');
         return;
       }
       var portrait = window.innerHeight > window.innerWidth;
       if (portrait) {
-        show('screen-rotate');
-        hide('screen-menu');
+        // En portrait: mostrar aviso solo si estamos en el menú
+        if (!juegoActivo) {
+          show('screen-rotate');
+          hide('screen-menu');
+        } else {
+          // Jugando: mostrar aviso de girar pero sin quitar el juego
+          show('screen-rotate');
+        }
       } else {
+        // En landscape: ocultar aviso siempre
         hide('screen-rotate');
-        show('screen-menu');
+        // Solo mostrar menú si NO estamos jugando
+        if (!juegoActivo) show('screen-menu');
       }
     }
 
@@ -341,6 +350,7 @@
     }
 
     function mostrarFinDeJuego() {
+      juegoActivo = false;
       salirFullscreen();
       if (!isMobile) { irAlMenu(); return; }
 
@@ -371,6 +381,7 @@
     // ── Al regresar al menú desde el juego (sin salir de la página) ──
     // Resetear menú para que JUGAR funcione de nuevo
     function resetearMenu() {
+      juegoActivo = false;
       document.getElementById('menu-content').style.display = 'flex';
       document.getElementById('screen-countdown').style.display = 'none';
       document.getElementById('countdown-num').textContent = '3';
@@ -398,6 +409,7 @@
             hide('screen-menu');
             hide('screen-countdown');
             document.getElementById('countdown-num').textContent = '3'; // reset
+            juegoActivo = true;
             entrarFullscreen();
           }, 1200);
         }
@@ -507,15 +519,26 @@
           document.addEventListener('click', unlock, {once:true});
         }
 
-        // Mostrar canvas (ya cargó) y ocultar pantalla de carga
+        // Unity reportó que cargó — esperar 2s extra para que
+        // termine de inicializarse completamente antes de mostrar el menú
         canvas.style.visibility = 'visible';
         var loading = document.getElementById('screen-loading');
-        loading.style.transition = 'opacity 0.5s';
-        loading.style.opacity = '0';
+
+        // Actualizar texto mientras espera
+        var h2 = loading.querySelector('h2');
+        if (h2) h2.textContent = '¡LISTO!';
+        var bar = document.getElementById('bar-fill');
+        if (bar) bar.style.width = '100%';
+
         setTimeout(function() {
-          loading.style.display = 'none';
-          checkOrientacion(); // mostrar menú según orientación
-        }, 500);
+          // Ahora sí ocultar y mostrar menú
+          loading.style.transition = 'opacity 0.5s';
+          loading.style.opacity = '0';
+          setTimeout(function() {
+            loading.style.display = 'none';
+            checkOrientacion();
+          }, 500);
+        }, 2000); // 2 segundos extra para que Unity se estabilice
 
         // Botón fullscreen de Unity
         document.querySelector('#unity-fullscreen-button').onclick = function() {
