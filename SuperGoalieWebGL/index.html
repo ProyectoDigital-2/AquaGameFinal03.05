@@ -304,10 +304,19 @@
 
     // ── Fullscreen ───────────────────────────────────────────────
     function entrarFullscreen() {
-      if (isAndroid || isIOS) {
-        window.scrollTo(0, 1);
+      if (isIOS) {
+        // iOS/iPad Safari NO soporta requestFullscreen — solo ocultar barra
+        try { window.scrollTo(0, 1); } catch(e) {}
+      } else if (isAndroid) {
+        // Android: solo scrollTo para evitar lag
+        try { window.scrollTo(0, 1); } catch(e) {}
       } else {
-        if (unityInstance) unityInstance.SetFullscreen(1);
+        // PC: fullscreen real de Unity con try/catch por seguridad
+        try {
+          if (unityInstance) unityInstance.SetFullscreen(1);
+        } catch(e) {
+          console.warn('Fullscreen no disponible:', e);
+        }
       }
     }
 
@@ -387,12 +396,12 @@
           el.textContent = '¡YA!';
           pulsar(el);
           setTimeout(function() {
-            // Ocultar todo y entrar al juego
+            // Ocultar menú y entrar al juego
             hide('screen-menu');
             hide('screen-countdown');
-            el.textContent = '3'; // reset
+            document.getElementById('countdown-num').textContent = '3'; // reset
             entrarFullscreen();
-          }, 800);
+          }, 1200);
         }
       }, 1000);
     }
