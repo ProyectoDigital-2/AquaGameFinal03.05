@@ -565,23 +565,25 @@
       }
 
       function startCountdown() {
+        // Evitar doble ejecución del botón JUGAR
+        if (userClickedPlay) return;
         userClickedPlay = true;
+
+        // Ocultar menú de instrucciones
         document.getElementById('intro-overlay').classList.remove('visible');
 
-        if (isAndroid || isIOS) window.scrollTo(0, 1);
-
-        if (unityLoaded) {
-          // Unity ya cargó — arrancar cuenta inmediatamente
-          if (!isAndroid && !isIOS) {
-            // PC: fullscreen y luego cuenta
-            if (unityInstance) unityInstance.SetFullscreen(1);
-            setTimeout(function() { tryStartCountdown(); }, 400);
-          } else {
-            tryStartCountdown();
-          }
+        // Fullscreen
+        if (isAndroid || isIOS) {
+          window.scrollTo(0, 1);
+        } else {
+          if (unityInstance) unityInstance.SetFullscreen(1);
         }
-        // Si Unity aún no cargó: custom-loading sigue visible
-        // Al terminar de cargar, tryStartCountdown() se llama automáticamente
+
+        // Arrancar cuenta regresiva (Unity ya cargó porque el botón solo aparece después)
+        setTimeout(function() {
+          countdownRunning = false; // reset por si acaso
+          tryStartCountdown();
+        }, isAndroid || isIOS ? 0 : 400);
       }
 
       function triggerPulse(el) {
@@ -680,9 +682,8 @@
             setTimeout(function() { cl.style.display = 'none'; }, 500);
           }
 
-          // Mostrar menú o arrancar cuenta si ya clickeó JUGAR
+          // Solo mostrar el menú — esperar a que el usuario presione JUGAR
           checkOrientation();
-          if (userClickedPlay) tryStartCountdown();
 
           document.querySelector("#unity-fullscreen-button").onclick = function() {
             // En Android evitar fullscreen por lag; en PC e iOS usar SetFullscreen
