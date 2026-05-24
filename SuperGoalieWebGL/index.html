@@ -1,707 +1,490 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Super Goalie</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
-    <style>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Super Goalie</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-      * { box-sizing: border-box; }
+    body { background: #050e1f; }
 
-      /* ── Fondo negro para iOS ── */
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #000;
-      }
+    /* ── Ocultar todo lo de Unity ── */
+    #unity-loading-bar,
+    #unity-footer,
+    #unity-build-title { display: none !important; }
 
-      /* ── Girar dispositivo AL INICIO (portrait → pide girar) ── */
-      #rotate-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        background: #050e1f;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-      }
-      #rotate-overlay.visible { display: flex; }
-      #rotate-overlay .rotate-icon {
-        font-size: 64px;
-        animation: rotatePhone 1.5s ease-in-out infinite;
-      }
-      @keyframes rotatePhone {
-        0%   { transform: rotate(0deg);  }
-        40%  { transform: rotate(90deg); }
-        60%  { transform: rotate(90deg); }
-        100% { transform: rotate(0deg);  }
-      }
-      #rotate-overlay h2 {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.8rem;
-        color: #ffaa00;
-        letter-spacing: 3px;
-        text-shadow: 0 0 20px rgba(255,170,0,0.6);
-        text-align: center;
-        margin: 0;
-      }
-      #rotate-overlay p {
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 1rem;
-        color: #1a8fff;
-        letter-spacing: 1px;
-        text-align: center;
-        margin: 0;
-      }
+    /* ══════════════════════════════════════
+       1. PANTALLA DE CARGA PERSONALIZADA
+    ══════════════════════════════════════ */
+    #screen-loading {
+      position: fixed; inset: 0; z-index: 100;
+      background: #050e1f;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    #screen-loading .ball {
+      font-size: 72px;
+      animation: spin 1.2s linear infinite;
+      filter: drop-shadow(0 0 20px rgba(255,170,0,0.7));
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    #screen-loading h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem; color: #ffaa00;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(255,170,0,0.6);
+    }
+    .bar-wrap {
+      width: 220px; height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg,#ffaa00,#ff8800);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
 
-      /* ── Overlay AL TERMINAR (pide girar de vuelta + botón continuar) ── */
-      #end-rotate-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        background: #050e1f;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-      }
-      #end-rotate-overlay.visible { display: flex; }
+    /* ══════════════════════════════════════
+       2. MENÚ ¡JUGAR! (aparece al terminar carga)
+    ══════════════════════════════════════ */
+    #screen-menu {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(5,14,31,0.85);
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; padding: 24px;
+    }
+    #screen-menu .ball-icon {
+      font-size: 56px;
+      animation: bounce 1s ease infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-10px); }
+    }
+    #screen-menu h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem; color: #ffaa00;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(255,170,0,0.7);
+    }
+    #screen-menu p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem; color: #ccd9ff;
+      text-align: center; line-height: 1.5;
+    }
+    #screen-menu p span { color: #1a8fff; }
+    #btn-jugar {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; letter-spacing: 3px;
+      color: #fff;
+      background: linear-gradient(135deg,#ffaa00,#ff8800);
+      border: 2px solid #1a5aff;
+      border-radius: 50px; padding: 14px 52px;
+      cursor: pointer; width: 100%; max-width: 320px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 24px rgba(255,170,0,0.5);
+      touch-action: manipulation;
+    }
+    #btn-jugar:hover, #btn-jugar:active {
+      transform: scale(1.05);
+      box-shadow: 0 6px 32px rgba(255,170,0,0.7);
+    }
+    #btn-menu {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem; letter-spacing: 2px;
+      color: #1a8fff; background: transparent;
+      border: 2px solid #1a8fff;
+      border-radius: 50px; padding: 10px 36px;
+      cursor: pointer; width: 100%; max-width: 320px;
+      transition: transform 0.15s, background 0.15s;
+      touch-action: manipulation;
+    }
+    #btn-menu:hover, #btn-menu:active {
+      transform: scale(1.04);
+      background: rgba(26,143,255,0.1);
+    }
 
-      #end-rotate-overlay .rotate-icon-end {
-        font-size: 72px;
-        animation: rotatePhoneBack 1.5s ease-in-out infinite;
-      }
-      @keyframes rotatePhoneBack {
-        0%   { transform: rotate(90deg); }
-        40%  { transform: rotate(0deg);  }
-        60%  { transform: rotate(0deg);  }
-        100% { transform: rotate(90deg); }
-      }
-      #end-rotate-overlay h2 {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.8rem;
-        color: #ffaa00;
-        letter-spacing: 3px;
-        text-shadow: 0 0 20px rgba(255,170,0,0.6);
-        text-align: center;
-        margin: 0;
-      }
-      #end-rotate-overlay p {
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 1rem;
-        color: #1a8fff;
-        letter-spacing: 1px;
-        text-align: center;
-        margin: 0;
-      }
-      #btn-continuar {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.4rem;
-        letter-spacing: 3px;
-        color: #fff;
-        background: linear-gradient(135deg, #ffaa00, #ff8800);
-        border: 2px solid #1a5aff;
-        border-radius: 50px;
-        padding: 14px 52px;
-        cursor: pointer;
-        margin-top: 8px;
-        transition: transform 0.15s, box-shadow 0.15s;
-        box-shadow: 0 4px 24px rgba(255,170,0,0.5);
-        touch-action: manipulation;
-      }
-      #btn-continuar:hover,
-      #btn-continuar:active {
-        transform: scale(1.06);
-        box-shadow: 0 6px 32px rgba(255,170,0,0.7);
-      }
+    /* ══════════════════════════════════════
+       3. CUENTA REGRESIVA
+    ══════════════════════════════════════ */
+    #screen-countdown {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(5,14,31,0.7);
+      display: none;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    #countdown-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22vw; color: #fff; line-height: 1;
+      text-shadow: 0 0 40px rgba(255,170,0,0.9),
+                   0 0 80px rgba(26,90,255,0.5);
+    }
+    #countdown-num.pulse {
+      animation: cpulse 0.7s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes cpulse {
+      from { transform: scale(1.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
 
-      /* ── Overlay de instrucciones ── */
-      #intro-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background: rgba(0, 10, 30, 0.88);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(4px);
-        overflow-y: auto;
-        padding: 16px;
-      }
-      #intro-overlay.visible { display: flex; }
+    /* ══════════════════════════════════════
+       4. GIRAR DISPOSITIVO (inicio)
+    ══════════════════════════════════════ */
+    #screen-rotate {
+      position: fixed; inset: 0; z-index: 300;
+      background: #050e1f;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+    }
+    #screen-rotate .ricon {
+      font-size: 64px;
+      animation: rphone 1.5s ease-in-out infinite;
+    }
+    @keyframes rphone {
+      0%  { transform: rotate(0deg); }
+      40% { transform: rotate(90deg); }
+      60% { transform: rotate(90deg); }
+      100%{ transform: rotate(0deg); }
+    }
+    #screen-rotate h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem; color: #ffaa00;
+      letter-spacing: 3px; text-align: center;
+    }
+    #screen-rotate p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; color: #1a8fff;
+      text-align: center;
+    }
 
-      #intro-box {
-        background: linear-gradient(145deg, #050e1f, #0a1a3a);
-        border: 3px solid #ffaa00;
-        border-radius: 20px;
-        padding: 24px 32px;
-        text-align: center;
-        width: 100%;
-        max-width: 700px;
-        box-shadow:
-          0 0 0 1px #1a5aff44,
-          0 0 40px rgba(255, 170, 0, 0.35),
-          0 0 80px rgba(26, 90, 255, 0.2),
-          inset 0 0 40px rgba(26, 90, 255, 0.05);
-        animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        display: grid;
-        grid-template-columns: auto 1fr;
-        grid-template-rows: auto auto auto;
-        align-items: center;
-        column-gap: 24px;
-        row-gap: 8px;
-      }
-      @keyframes popIn {
-        from { transform: scale(0.7); opacity: 0; }
-        to   { transform: scale(1);   opacity: 1; }
-      }
-      #intro-box .ball-icon {
-        font-size: 52px;
-        grid-column: 1;
-        grid-row: 1 / 3;
-        animation: bounce 1s ease infinite alternate;
-        align-self: center;
-      }
-      @keyframes bounce {
-        from { transform: translateY(0);    }
-        to   { transform: translateY(-8px); }
-      }
-      #intro-box h1 {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 2rem;
-        color: #ffaa00;
-        letter-spacing: 3px;
-        margin: 0;
-        text-shadow: 0 0 20px rgba(255, 170, 0, 0.7);
-        grid-column: 2;
-        grid-row: 1;
-        text-align: left;
-      }
-      #intro-box p {
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 1.1rem;
-        color: #ccd9ff;
-        line-height: 1.5;
-        margin: 0;
-        grid-column: 2;
-        grid-row: 2;
-        text-align: left;
-      }
-      #intro-box p span {
-        color: #1a8fff;
-        font-size: 1.2rem;
-        text-shadow: 0 0 12px rgba(26, 143, 255, 0.6);
-      }
-      #intro-box .btn-wrap {
-        grid-column: 1 / 3;
-        grid-row: 3;
-        display: flex;
-        justify-content: center;
-        padding-top: 16px;
-      }
-      #btn-start {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.4rem;
-        letter-spacing: 3px;
-        color: #fff;
-        background: linear-gradient(135deg, #ffaa00, #ff8800);
-        border: 2px solid #1a5aff;
-        border-radius: 50px;
-        padding: 12px 48px;
-        cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.15s;
-        box-shadow: 0 4px 24px rgba(255,170,0,0.5), 0 0 0 2px #1a5aff33;
-        touch-action: manipulation;
-      }
-      #btn-start:hover,
-      #btn-start:active {
-        transform: scale(1.06);
-        box-shadow: 0 6px 32px rgba(255,170,0,0.7), 0 0 0 3px #1a5affaa;
-      }
+    /* ══════════════════════════════════════
+       5. GIRAR DISPOSITIVO (al terminar)
+    ══════════════════════════════════════ */
+    #screen-end {
+      position: fixed; inset: 0; z-index: 300;
+      background: #050e1f;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    #screen-end .ricon-back {
+      font-size: 72px;
+      animation: rback 1.5s ease-in-out infinite;
+    }
+    @keyframes rback {
+      0%  { transform: rotate(90deg); }
+      40% { transform: rotate(0deg); }
+      60% { transform: rotate(0deg); }
+      100%{ transform: rotate(90deg); }
+    }
+    #screen-end h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem; color: #ffaa00;
+      letter-spacing: 3px; text-align: center;
+    }
+    #screen-end p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; color: #1a8fff;
+      text-align: center;
+    }
+    #btn-continuar {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem; letter-spacing: 3px;
+      color: #fff;
+      background: linear-gradient(135deg,#ffaa00,#ff8800);
+      border: 2px solid #1a5aff;
+      border-radius: 50px; padding: 14px 52px;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(255,170,0,0.5);
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+<body>
 
-      /* ── Cuenta regresiva ── */
-      #countdown-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 999999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 10, 30, 0.6);
-        backdrop-filter: blur(2px);
-      }
-      #countdown-overlay.active { display: flex; }
-      #countdown-number {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 18vw;
-        color: #fff;
-        text-shadow:
-          0 0 40px rgba(255, 170, 0, 0.9),
-          0 0 80px rgba(26, 90, 255, 0.5);
-        line-height: 1;
-      }
-      #countdown-number.pulse {
-        animation: countPulse 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-      }
-      @keyframes countPulse {
-        from { transform: scale(1.8); opacity: 0; }
-        to   { transform: scale(1);   opacity: 1; }
-      }
+  <!-- 1. Carga -->
+  <div id="screen-loading">
+    <div class="ball">⚽</div>
+    <h2>CARGANDO...</h2>
+    <div class="bar-wrap"><div class="bar-fill" id="bar-fill"></div></div>
+  </div>
 
-      /* ── Espera de carga ── */
-      #waiting-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9997;
-        background: rgba(0, 10, 30, 0.92);
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-        backdrop-filter: blur(3px);
-      }
-      #waiting-overlay.active { display: flex; }
-      #waiting-overlay .loading-ball {
-        font-size: 52px;
-        animation: spinBall 1s linear infinite;
-      }
-      @keyframes spinBall {
-        from { transform: rotate(0deg);   }
-        to   { transform: rotate(360deg); }
-      }
-      #waiting-overlay p {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.4rem;
-        color: #ffaa00;
-        letter-spacing: 3px;
-        text-shadow: 0 0 16px rgba(255,170,0,0.6);
-        text-align: center;
-        margin: 0;
-      }
-      #waiting-overlay span {
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 0.95rem;
-        color: #1a8fff;
-        letter-spacing: 1px;
-        text-align: center;
-      }
+  <!-- 2. Menú Jugar -->
+  <div id="screen-menu">
+    <div class="ball-icon">⚽</div>
+    <h1>¡A PATEAR!</h1>
+    <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
+    <button id="btn-jugar">¡JUGAR!</button>
+    <button id="btn-menu">← VOLVER AL MENÚ</button>
+  </div>
 
-      #unity-build-title { display: none !important; }
-      /* Ocultar loading bar original de Unity */
-      #unity-loading-bar { display: none !important; }
-      #unity-footer { display: none !important; }
+  <!-- 3. Cuenta regresiva -->
+  <div id="screen-countdown">
+    <div id="countdown-num">3</div>
+  </div>
 
-      /* ── Pantalla de carga personalizada ── */
-      #custom-loading {
-        position: fixed;
-        inset: 0;
-        z-index: 99998;
-        background: #050e1f;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-        transition: opacity 0.5s ease;
-      }
-      #custom-loading.oculto {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #custom-loading .ball-spin {
-        font-size: 72px;
-        animation: ballSpin 1s linear infinite;
-        filter: drop-shadow(0 0 20px rgba(255,170,0,0.6));
-      }
-      @keyframes ballSpin {
-        from { transform: rotate(0deg);   }
-        to   { transform: rotate(360deg); }
-      }
-      #custom-loading h2 {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.8rem;
-        color: #ffaa00;
-        letter-spacing: 4px;
-        text-shadow: 0 0 20px rgba(255,170,0,0.6);
-        margin: 0;
-      }
-      #custom-loading .progress-wrap {
-        width: 220px;
-        height: 6px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 10px;
-        overflow: hidden;
-      }
-      #custom-loading .progress-bar {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #ffaa00, #ff8800);
-        border-radius: 10px;
-        transition: width 0.3s ease;
-      }
+  <!-- 4. Girar al inicio -->
+  <div id="screen-rotate">
+    <div class="ricon">📱</div>
+    <h2>GIRA TU DISPOSITIVO</h2>
+    <p>El juego se ve mejor en horizontal</p>
+  </div>
 
-    </style>
-  </head>
-  <body>
+  <!-- 5. Girar al terminar -->
+  <div id="screen-end">
+    <div class="ricon-back">📱</div>
+    <h2>¡LISTO!</h2>
+    <p>Gira tu dispositivo para continuar</p>
+    <button id="btn-continuar">CONTINUAR</button>
+  </div>
 
-    <!-- 1. Girar al inicio (portrait → landscape) -->
-    <div id="rotate-overlay">
-      <div class="rotate-icon">📱</div>
-      <h2>GIRA TU DISPOSITIVO</h2>
-      <p>El juego se ve mejor en horizontal</p>
-    </div>
-
-    <!-- 2. Girar al terminar (landscape → portrait) + botón continuar -->
-    <div id="end-rotate-overlay">
-      <div class="rotate-icon-end">📱</div>
-      <h2>¡LISTO!</h2>
-      <p>Gira tu dispositivo para continuar</p>
-      <button id="btn-continuar" onclick="irAlMenu()">CONTINUAR</button>
-    </div>
-
-    <!-- 3. Instrucciones -->
-    <div id="intro-overlay">
-      <div id="intro-box">
-        <div class="ball-icon">⚽</div>
-        <h1>¡A PATEAR!</h1>
-        <p>
-          <span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>
-          ¡Apunta bien y marca gol!
-        </p>
-        <div class="btn-wrap" style="flex-direction:column;gap:12px;">
-          <button id="btn-start" onclick="startCountdown()">¡JUGAR!</button>
-          <button id="btn-menu" onclick="irAlMenu()" style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:#1a8fff;background:transparent;border:2px solid #1a8fff;border-radius:50px;padding:8px 32px;cursor:pointer;touch-action:manipulation;transition:transform 0.15s;">← VOLVER AL MENÚ</button>
-        </div>
+  <!-- Unity -->
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
       </div>
     </div>
-
-    <!-- 3b. Pantalla de carga personalizada -->
-    <div id="custom-loading">
-      <div class="ball-spin">⚽</div>
-      <h2>CARGANDO...</h2>
-      <div class="progress-wrap">
-        <div class="progress-bar" id="custom-progress"></div>
-      </div>
+    <div id="unity-warning"></div>
+    <div id="unity-footer">
+      <div id="unity-logo-title-footer"></div>
+      <div id="unity-fullscreen-button"></div>
+      <div id="unity-build-title">Super Goalie Basic</div>
     </div>
+  </div>
 
-    <!-- 4. Espera de carga -->
-    <div id="waiting-overlay">
-      <div class="loading-ball">⚽</div>
-      <p>CARGANDO PARTIDO...</p>
-      <span>La cuenta regresiva comenzará al terminar</span>
-    </div>
+  <script>
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    var isAndroid = /Android/i.test(navigator.userAgent);
+    var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    var unityInstance = null;
+    var unityLoaded = false;
 
-    <!-- 5. Cuenta regresiva -->
-    <div id="countdown-overlay">
-      <div id="countdown-number">3</div>
-    </div>
+    // ── Pantallas ────────────────────────────────────────────────
+    function show(id) { document.getElementById(id).style.display = 'flex'; }
+    function hide(id) { document.getElementById(id).style.display = 'none'; }
 
-    <!-- 6. Canvas de Unity -->
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Super Goalie Basic</div>
-      </div>
-    </div>
-
-    <script>
-      var isMobile  = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      var isAndroid = /Android/i.test(navigator.userAgent);
-      var isIOS     = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      // ── Orientación al inicio ──────────────────────────────────────────
-      // El intro-overlay solo se muestra cuando Unity ya terminó de cargar
-      function checkOrientation() {
-        if (!isMobile) {
-          // En desktop: solo mostrar intro si Unity ya cargó
-          if (unityLoaded) {
-            document.getElementById('intro-overlay').classList.add('visible');
-          }
-          return;
-        }
-        var portrait = window.innerHeight > window.innerWidth;
-        // rotate-overlay siempre visible si está en portrait
-        document.getElementById('rotate-overlay').classList.toggle('visible', portrait);
-        // intro-overlay solo si landscape Y Unity ya cargó
-        document.getElementById('intro-overlay').classList.toggle('visible', !portrait && unityLoaded);
+    // ── Orientación ──────────────────────────────────────────────
+    function checkOrientacion() {
+      if (!isMobile) {
+        hide('screen-rotate');
+        show('screen-menu');
+        return;
       }
-
-      window.addEventListener('resize', checkOrientation);
-      window.addEventListener('orientationchange', function() {
-        setTimeout(checkOrientation, 150);
-      });
-      checkOrientation();
-
-      // ── Pantalla completa ──────────────────────────────────────────────
-      function entrarFullscreen() {
-        var el = document.documentElement;
-        if      (el.requestFullscreen)       el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
-      }
-
-      function salirFullscreen() {
-        if      (document.exitFullscreen)       document.exitFullscreen().catch(function(){});
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        else if (document.mozCancelFullScreen)  document.mozCancelFullScreen();
-      }
-
-      // ── Ir al menú principal ───────────────────────────────────────────
-      function irAlMenu() {
-        salirFullscreen();
-        // Desbloquear orientación en Android
-        if (screen.orientation && screen.orientation.unlock) {
-          screen.orientation.unlock();
-        }
-        // Navegar al menú principal (un nivel arriba de SuperGoalieWebGL/)
-        window.location.href = "../index.html";
-      }
-
-      // ── Mostrar overlay de fin y pedir girar ───────────────────────────
-      function mostrarFinDeJuego() {
-        salirFullscreen();
-
-        if (!isMobile) {
-          // En desktop ir directo al menú sin overlay
-          irAlMenu();
-          return;
-        }
-
-        // ── Intentar forzar portrait en Android ───────────────────────────
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock("portrait").catch(function() {
-            // Si falla (iOS u otro), mostrar overlay manual
-          });
-        }
-
-        // Mostrar overlay con animación y botón continuar
-        document.getElementById('end-rotate-overlay').classList.add('visible');
-
-        // Detectar si el usuario ya giró o gira el teléfono → ir al menú automático
-        function checkPortraitAndGo() {
-          var portrait = window.innerHeight > window.innerWidth;
-          if (portrait) {
-            window.removeEventListener('orientationchange', onEndOrient);
-            window.removeEventListener('resize', checkPortraitAndGo);
-            // Pequeño delay para que la animación se vea
-            setTimeout(function() {
-              document.getElementById('end-rotate-overlay').classList.remove('visible');
-              irAlMenu();
-            }, 800);
-          }
-        }
-
-        function onEndOrient() {
-          setTimeout(checkPortraitAndGo, 200);
-        }
-
-        window.addEventListener('orientationchange', onEndOrient);
-        window.addEventListener('resize', checkPortraitAndGo);
-
-        // Verificar si ya está en portrait al momento de llamar
-        checkPortraitAndGo();
-      }
-
-      // ── Estas funciones las llama Unity desde C# (DllImport __Internal) ─
-      function NotifyGoalScored()        { mostrarFinDeJuego(); }
-      function NotifyGoalMissed()        { mostrarFinDeJuego(); }
-      function NotifyPracticaTerminada() { mostrarFinDeJuego(); }
-
-      // ── Estado de carga ────────────────────────────────────────────────
-      var unityLoaded     = false;
-      var userClickedPlay = false;
-      var unityInstance   = null; // referencia global para SetFullscreen
-
-      // ── Cuenta regresiva ───────────────────────────────────────────────
-      var countdownRunning = false; // evitar doble ejecución
-
-      function tryStartCountdown() {
-        if (!unityLoaded || !userClickedPlay) return;
-        if (countdownRunning) return; // ya está corriendo
-        countdownRunning = true;
-
-        var overlay = document.getElementById('countdown-overlay');
-        var numEl   = document.getElementById('countdown-number');
-        overlay.classList.add('active');
-
-        var count = 3;
-        numEl.textContent = count;
-        triggerPulse(numEl);
-
-        var interval = setInterval(function() {
-          count--;
-          if (count > 0) {
-            numEl.textContent = count;
-            triggerPulse(numEl);
-          } else {
-            clearInterval(interval);
-            numEl.textContent = '¡YA!';
-            triggerPulse(numEl);
-            setTimeout(function() {
-              overlay.classList.remove('active');
-              countdownRunning = false; // reset para próximo tiro
-            }, 800);
-          }
-        }, 1000);
-      }
-
-      function startCountdown() {
-        // Evitar doble ejecución del botón JUGAR
-        if (userClickedPlay) return;
-        userClickedPlay = true;
-
-        // Ocultar menú de instrucciones
-        document.getElementById('intro-overlay').classList.remove('visible');
-
-        // Fullscreen
-        if (isAndroid || isIOS) {
-          window.scrollTo(0, 1);
-        } else {
-          if (unityInstance) unityInstance.SetFullscreen(1);
-        }
-
-        // Arrancar cuenta regresiva (Unity ya cargó porque el botón solo aparece después)
-        setTimeout(function() {
-          countdownRunning = false; // reset por si acaso
-          tryStartCountdown();
-        }, isAndroid || isIOS ? 0 : 400);
-      }
-
-      function triggerPulse(el) {
-        el.classList.remove('pulse');
-        void el.offsetWidth;
-        el.classList.add('pulse');
-      }
-
-      // ── Unity loader ───────────────────────────────────────────────────
-      var canvas = document.querySelector("#unity-canvas");
-
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
-
-      var buildUrl  = "Build";
-      var loaderUrl = buildUrl + "/05.05.loader.js";
-      var config = {
-        arguments: [],
-        dataUrl:          buildUrl + "/05.05.data",
-        frameworkUrl:     buildUrl + "/05.05.framework.js",
-        codeUrl:          buildUrl + "/05.05.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName:   "DefaultCompany",
-        productName:   "Super Goalie Basic",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-      };
-
-      if (isMobile) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
+      var portrait = window.innerHeight > window.innerWidth;
+      if (portrait) {
+        show('screen-rotate');
+        hide('screen-menu');
       } else {
-        canvas.style.width  = "960px";
-        canvas.style.height = "600px";
+        hide('screen-rotate');
+        show('screen-menu');
+      }
+    }
+
+    window.addEventListener('orientationchange', function() {
+      setTimeout(checkOrientacion, 150);
+    });
+    window.addEventListener('resize', checkOrientacion);
+
+    // ── Fullscreen ───────────────────────────────────────────────
+    function entrarFullscreen() {
+      if (isAndroid || isIOS) {
+        window.scrollTo(0, 1);
+      } else {
+        if (unityInstance) unityInstance.SetFullscreen(1);
+      }
+    }
+
+    function salirFullscreen() {
+      if (document.exitFullscreen) document.exitFullscreen().catch(function(){});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    // ── Menú al terminar ─────────────────────────────────────────
+    function irAlMenu() {
+      salirFullscreen();
+      if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+      window.location.href = '../index.html';
+    }
+
+    function mostrarFinDeJuego() {
+      salirFullscreen();
+      if (!isMobile) { irAlMenu(); return; }
+
+      // Intentar forzar portrait en Android
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('portrait').catch(function(){});
       }
 
-      // Loading bar de Unity oculto — usamos custom-loading
+      show('screen-end');
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = function() {
-        createUnityInstance(canvas, config, function(progress) {
-          // Solo actualizar barra visual
-          document.getElementById('custom-progress').style.width = Math.round(progress * 100) + '%';
-        }).then(function(ui) {
-          unityInstance = ui; // guardar globalmente
+      function checkPortrait() {
+        if (window.innerHeight > window.innerWidth) {
+          hide('screen-end');
+          setTimeout(irAlMenu, 600);
+        }
+      }
+      window.addEventListener('orientationchange', function() {
+        setTimeout(checkPortrait, 200);
+      });
+      checkPortrait();
+    }
 
-          // ── Desbloquear audio en iOS/iPad ──
-          var AudioCtx = window.AudioContext || window.webkitAudioContext;
-          if (AudioCtx) {
-            var audioCtx = new AudioCtx();
-            function unlockAudio() {
-              if (audioCtx.state === 'suspended') audioCtx.resume();
-              var buf = audioCtx.createBuffer(1, 1, 22050);
-              var src = audioCtx.createBufferSource();
-              src.buffer = buf;
-              src.connect(audioCtx.destination);
-              src.start(0);
-              document.removeEventListener('touchstart', unlockAudio);
-              document.removeEventListener('touchend',   unlockAudio);
-              document.removeEventListener('click',      unlockAudio);
-            }
-            document.addEventListener('touchstart', unlockAudio, { once: true });
-            document.addEventListener('touchend',   unlockAudio, { once: true });
-            document.addEventListener('click',      unlockAudio, { once: true });
+    // ── Callbacks de Unity ───────────────────────────────────────
+    function NotifyGoalScored()        { mostrarFinDeJuego(); }
+    function NotifyGoalMissed()        { mostrarFinDeJuego(); }
+    function NotifyPracticaTerminada() { mostrarFinDeJuego(); }
+
+    // ── Cuenta regresiva ─────────────────────────────────────────
+    function iniciarCuenta() {
+      var el = document.getElementById('countdown-num');
+      var sc = document.getElementById('screen-countdown');
+      sc.style.display = 'flex';
+
+      var n = 3;
+      el.textContent = n;
+      pulsar(el);
+
+      var iv = setInterval(function() {
+        n--;
+        if (n > 0) {
+          el.textContent = n;
+          pulsar(el);
+        } else {
+          clearInterval(iv);
+          el.textContent = '¡YA!';
+          pulsar(el);
+          setTimeout(function() {
+            sc.style.display = 'none';
+            el.textContent = '3'; // reset para próxima vez
+          }, 800);
+        }
+      }, 1000);
+    }
+
+    function pulsar(el) {
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+    }
+
+    // ── Botón JUGAR ──────────────────────────────────────────────
+    document.getElementById('btn-jugar').addEventListener('click', function() {
+      hide('screen-menu');
+      entrarFullscreen();
+      // Pequeño delay para que fullscreen se active antes de la cuenta
+      setTimeout(iniciarCuenta, isAndroid || isIOS ? 100 : 500);
+    });
+
+    // ── Botón VOLVER AL MENÚ ─────────────────────────────────────
+    document.getElementById('btn-menu').addEventListener('click', irAlMenu);
+
+    // ── Botón CONTINUAR (fin de juego) ───────────────────────────
+    document.getElementById('btn-continuar').addEventListener('click', irAlMenu);
+
+    // ── Unity loader ─────────────────────────────────────────────
+    var canvas = document.querySelector('#unity-canvas');
+
+    function unityShowBanner(msg, type) {
+      var w = document.querySelector('#unity-warning');
+      var d = document.createElement('div');
+      d.innerHTML = msg;
+      w.appendChild(d);
+      if (type === 'error') d.style = 'background:red;padding:10px;';
+      else if (type === 'warning') {
+        d.style = 'background:yellow;padding:10px;';
+        setTimeout(function() { w.removeChild(d); }, 5000);
+      }
+      w.style.display = w.children.length ? 'block' : 'none';
+    }
+
+    var buildUrl  = 'Build';
+    var loaderUrl = buildUrl + '/05.05.loader.js';
+    var config = {
+      arguments: [],
+      dataUrl:            buildUrl + '/05.05.data',
+      frameworkUrl:       buildUrl + '/05.05.framework.js',
+      codeUrl:            buildUrl + '/05.05.wasm',
+      streamingAssetsUrl: 'StreamingAssets',
+      companyName:   'DefaultCompany',
+      productName:   'Super Goalie Basic',
+      productVersion: '0.1',
+      showBanner: unityShowBanner,
+    };
+
+    if (isMobile) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width,height=device-height,initial-scale=1.0,user-scalable=no,shrink-to-fit=yes';
+      document.head.appendChild(meta);
+      document.querySelector('#unity-container').className = 'unity-mobile';
+      canvas.className = 'unity-mobile';
+    } else {
+      canvas.style.width  = '960px';
+      canvas.style.height = '600px';
+    }
+
+    var script = document.createElement('script');
+    script.src = loaderUrl;
+    script.onload = function() {
+      createUnityInstance(canvas, config, function(progress) {
+        document.getElementById('bar-fill').style.width = Math.round(progress * 100) + '%';
+      }).then(function(ui) {
+        unityInstance = ui;
+        unityLoaded = true;
+
+        // Desbloquear audio iOS
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          var ctx = new AudioCtx();
+          function unlock() {
+            if (ctx.state === 'suspended') ctx.resume();
+            var b = ctx.createBuffer(1,1,22050);
+            var s = ctx.createBufferSource();
+            s.buffer = b; s.connect(ctx.destination); s.start(0);
+            document.removeEventListener('touchstart', unlock);
+            document.removeEventListener('click', unlock);
           }
+          document.addEventListener('touchstart', unlock, {once:true});
+          document.addEventListener('click', unlock, {once:true});
+        }
 
-          // ── Unity listo ──
-          unityLoaded = true;
-          document.getElementById('waiting-overlay').classList.remove('active');
+        // Ocultar pantalla de carga y mostrar menú
+        var loading = document.getElementById('screen-loading');
+        loading.style.transition = 'opacity 0.5s';
+        loading.style.opacity = '0';
+        setTimeout(function() {
+          loading.style.display = 'none';
+          checkOrientacion(); // mostrar menú según orientación
+        }, 500);
 
-          // Ocultar pantalla de carga con fade
-          var cl = document.getElementById('custom-loading');
-          if (cl) {
-            cl.classList.add('oculto');
-            setTimeout(function() { cl.style.display = 'none'; }, 500);
-          }
+        // Botón fullscreen de Unity
+        document.querySelector('#unity-fullscreen-button').onclick = function() {
+          if (!isAndroid) unityInstance.SetFullscreen(1);
+          else window.scrollTo(0, 1);
+        };
 
-          // Solo mostrar el menú — esperar a que el usuario presione JUGAR
-          userClickedPlay = false;  // reset para que el botón JUGAR funcione
-          countdownRunning = false; // reset de la cuenta
-          checkOrientation();
+      }).catch(function(msg) { alert(msg); });
+    };
 
-          document.querySelector("#unity-fullscreen-button").onclick = function() {
-            // En Android evitar fullscreen por lag; en PC e iOS usar SetFullscreen
-            if (!isAndroid) {
-              unityInstance.SetFullscreen(1);
-            } else {
-              window.scrollTo(0, 1);
-            }
-          };
-
-        }).catch(function(message) {
-          alert(message);
-        });
-      };
-
-      document.body.appendChild(script);
-    </script>
-  </body>
+    document.body.appendChild(script);
+  </script>
+</body>
 </html>
