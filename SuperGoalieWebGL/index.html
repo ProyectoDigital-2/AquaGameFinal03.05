@@ -63,8 +63,14 @@
       background: rgba(5,14,31,0.85);
       display: none;
       flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 20px; padding: 24px;
+      align-items: center; justify-content: flex-start;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 24px 24px 40px;
+    }
+    #menu-content {
+      margin: auto 0;
+      padding: 16px 0;
     }
     #screen-menu .ball-icon {
       font-size: 56px;
@@ -497,9 +503,18 @@
     var script = document.createElement('script');
     script.src = loaderUrl;
     script.onload = function() {
+      // Progreso simulado suave mientras Unity inicializa
+      var fakeP = 0;
+      var fakeIv = setInterval(function() {
+        if (fakeP < 80) { fakeP += 0.4; document.getElementById('bar-fill').style.width = fakeP + '%'; }
+        else { clearInterval(fakeIv); }
+      }, 80);
+
       createUnityInstance(canvas, config, function(progress) {
-        document.getElementById('bar-fill').style.width = Math.round(progress * 100) + '%';
+        clearInterval(fakeIv);
+        document.getElementById('bar-fill').style.width = (80 + Math.round(progress * 20)) + '%';
       }).then(function(ui) {
+        clearInterval(fakeIv);
         unityInstance = ui;
         unityLoaded = true;
 
@@ -519,26 +534,23 @@
           document.addEventListener('click', unlock, {once:true});
         }
 
-        // Unity reportó que cargó — esperar 2s extra para que
-        // termine de inicializarse completamente antes de mostrar el menú
+        // Unity cargó — mostrar listo y hacer fade inmediato
         canvas.style.visibility = 'visible';
         var loading = document.getElementById('screen-loading');
-
-        // Actualizar texto mientras espera
         var h2 = loading.querySelector('h2');
         if (h2) h2.textContent = '¡LISTO!';
         var bar = document.getElementById('bar-fill');
         if (bar) bar.style.width = '100%';
 
+        // Fade out rápido — sin pantalla negra
         setTimeout(function() {
-          // Ahora sí ocultar y mostrar menú
-          loading.style.transition = 'opacity 0.5s';
+          loading.style.transition = 'opacity 0.4s';
           loading.style.opacity = '0';
           setTimeout(function() {
             loading.style.display = 'none';
             checkOrientacion();
-          }, 500);
-        }, 2000); // 2 segundos extra para que Unity se estabilice
+          }, 400);
+        }, 600);
 
         // Botón fullscreen de Unity
         document.querySelector('#unity-fullscreen-button').onclick = function() {
