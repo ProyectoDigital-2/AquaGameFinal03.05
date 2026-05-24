@@ -327,21 +327,10 @@
 
     // Detectar ESC (salida de fullscreen) y mostrar menú de nuevo
     document.addEventListener('fullscreenchange', function() {
-      if (!document.fullscreenElement && unityLoaded) {
-        // Salió de fullscreen (ESC) — mostrar menú
-        document.getElementById('menu-content').style.display = 'flex';
-        document.getElementById('screen-countdown').style.display = 'none';
-        document.getElementById('countdown-num').textContent = '3';
-        checkOrientacion();
-      }
+      if (!document.fullscreenElement && unityLoaded) resetearMenu();
     });
     document.addEventListener('webkitfullscreenchange', function() {
-      if (!document.webkitFullscreenElement && unityLoaded) {
-        document.getElementById('menu-content').style.display = 'flex';
-        document.getElementById('screen-countdown').style.display = 'none';
-        document.getElementById('countdown-num').textContent = '3';
-        checkOrientacion();
-      }
+      if (!document.webkitFullscreenElement && unityLoaded) resetearMenu();
     });
 
     // ── Menú al terminar ─────────────────────────────────────────
@@ -378,6 +367,15 @@
     function NotifyGoalScored()        { mostrarFinDeJuego(); }
     function NotifyGoalMissed()        { mostrarFinDeJuego(); }
     function NotifyPracticaTerminada() { mostrarFinDeJuego(); }
+
+    // ── Al regresar al menú desde el juego (sin salir de la página) ──
+    // Resetear menú para que JUGAR funcione de nuevo
+    function resetearMenu() {
+      document.getElementById('menu-content').style.display = 'flex';
+      document.getElementById('screen-countdown').style.display = 'none';
+      document.getElementById('countdown-num').textContent = '3';
+      checkOrientacion();
+    }
 
     // ── Cuenta regresiva ─────────────────────────────────────────
     function iniciarCuentaYJugar() {
@@ -441,6 +439,19 @@
         setTimeout(function() { w.removeChild(d); }, 5000);
       }
       w.style.display = w.children.length ? 'block' : 'none';
+    }
+
+    // ── Bloquear requestFullscreen en iOS/iPad ──────────────────
+    // Unity lo llama internamente y Safari lo rechaza con error
+    if (isIOS) {
+      var origRequest = HTMLElement.prototype.requestFullscreen;
+      HTMLElement.prototype.requestFullscreen = function() {
+        // Silenciar el error — no hacer nada en iOS
+        return Promise.resolve();
+      };
+      if (HTMLElement.prototype.webkitRequestFullscreen) {
+        HTMLElement.prototype.webkitRequestFullscreen = function() {};
+      }
     }
 
     var buildUrl  = 'Build';
