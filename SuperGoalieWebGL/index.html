@@ -243,6 +243,9 @@
     <div class="ricon">📱</div>
     <h2>GIRA TU DISPOSITIVO</h2>
     <p>El juego se ve mejor en horizontal</p>
+    <p id="rotate-countdown" style="margin-top:12px;font-size:0.85rem;color:rgba(255,255,255,0.4);">
+      Continuando en <span id="rotate-secs">5</span>s...
+    </p>
   </div>
 
   <!-- 5. Girar al terminar -->
@@ -287,8 +290,9 @@
     function hide(id) { document.getElementById(id).style.display = 'none'; }
 
     // ── Orientación ──────────────────────────────────────────────
+    var rotateTimer = null;
+
     function checkOrientacion() {
-      // Nunca mostrar menú hasta que Unity esté 100% listo
       if (!unityListo) return;
 
       if (!isMobile) {
@@ -296,18 +300,46 @@
         if (!juegoActivo) show('screen-menu');
         return;
       }
+
       var portrait = window.innerHeight > window.innerWidth;
-      if (portrait) {
-        if (!juegoActivo) {
-          show('screen-rotate');
-          hide('screen-menu');
-        } else {
-          show('screen-rotate');
-        }
+
+      if (portrait && !juegoActivo) {
+        show('screen-rotate');
+        hide('screen-menu');
+        iniciarCountdownRotate();
+      } else if (portrait && juegoActivo) {
+        show('screen-rotate');
+        iniciarCountdownRotate();
       } else {
+        // Landscape — ocultar rotate y mostrar menú
+        pararCountdownRotate();
         hide('screen-rotate');
         if (!juegoActivo) show('screen-menu');
       }
+    }
+
+    function iniciarCountdownRotate() {
+      if (rotateTimer) return; // ya está corriendo
+      var secs = 5;
+      document.getElementById('rotate-secs').textContent = secs;
+      rotateTimer = setInterval(function() {
+        secs--;
+        document.getElementById('rotate-secs').textContent = secs;
+        if (secs <= 0) {
+          pararCountdownRotate();
+          // Tiempo agotado — dejar pasar aunque siga en portrait
+          hide('screen-rotate');
+          if (!juegoActivo) show('screen-menu');
+        }
+      }, 1000);
+    }
+
+    function pararCountdownRotate() {
+      if (rotateTimer) {
+        clearInterval(rotateTimer);
+        rotateTimer = null;
+      }
+      document.getElementById('rotate-secs').textContent = '5'; // reset
     }
 
     window.addEventListener('orientationchange', function() {
