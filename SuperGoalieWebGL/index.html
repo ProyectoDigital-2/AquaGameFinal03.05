@@ -29,17 +29,8 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 20px;
     }
-    #screen-loading .ball {
-      font-size: 72px;
-      animation: spin 1.2s linear infinite;
-      filter: drop-shadow(0 0 20px rgba(255,170,0,0.7));
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
+    #screen-loading .ball { display: none; }
     /* Pausar animaciones mientras Unity carga para liberar GPU */
-    #screen-loading.cargando .ball { animation-play-state: running; }
     #screen-menu .ball-icon { animation-play-state: paused; }
     #screen-loading h2 {
       font-family: 'Bebas Neue', sans-serif;
@@ -227,7 +218,6 @@
 
   <!-- 1. Carga -->
   <div id="screen-loading">
-    <div class="ball">⚽</div>
     <h2>CARGANDO...</h2>
     <div class="bar-wrap"><div class="bar-fill" id="bar-fill"></div></div>
   </div>
