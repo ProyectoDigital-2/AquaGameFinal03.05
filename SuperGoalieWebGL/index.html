@@ -589,20 +589,21 @@
 
     canvas.style.visibility = 'hidden';
 
-    // Progreso simulado suave mientras Unity inicializa
-    var fakeP  = 0;
-    var fakeIv = setInterval(function() {
-      if (fakeP < 80) {
-        fakeP += 0.4;
-        document.getElementById('bar-fill').style.width = fakeP + '%';
-      } else {
-        clearInterval(fakeIv);
-      }
-    }, 80);
-
     var script = document.createElement('script');
     script.src = loaderUrl;
     script.onload = function() {
+
+      // Progreso simulado suave — dentro del onload para que el loader ya esté listo
+      var fakeP  = 0;
+      var fakeIv = setInterval(function() {
+        if (fakeP < 80) {
+          fakeP += 0.4;
+          document.getElementById('bar-fill').style.width = fakeP + '%';
+        } else {
+          clearInterval(fakeIv);
+        }
+      }, 80);
+
       createUnityInstance(canvas, config, function(progress) {
         clearInterval(fakeIv);
         document.getElementById('bar-fill').style.width = (80 + progress * 20) + '%';
