@@ -322,33 +322,28 @@
     window.addEventListener('resize', checkOrientacion);
 
     // ── Fullscreen ───────────────────────────────────────────────
-    async function entrarFullscreen() {
+    function entrarFullscreen() {
       if (isAndroid || isIPad) {
-        // Android e iPad: requestFullscreen real
+        // Android e iPad: requestFullscreen real (sin await para no bloquear)
+        var el = document.documentElement;
+        var fsPromise = null;
         try {
-          var el = document.documentElement;
-          if (el.requestFullscreen) {
-            await el.requestFullscreen();
-          } else if (el.webkitRequestFullscreen) {
-            el.webkitRequestFullscreen();
-          }
-          if (screen.orientation && screen.orientation.lock) {
-            try { await screen.orientation.lock('landscape'); } catch(e) {}
-          }
-        } catch(e) {
-          try { window.scrollTo(0, 1); } catch(e2) {}
+          if (el.requestFullscreen) fsPromise = el.requestFullscreen();
+          else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        } catch(e) {}
+        // Orientation lock sin await
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(function(){});
         }
-        return;
+        return fsPromise || Promise.resolve();
       }
       if (isIPhone) {
-        // iPhone: solo ocultar barra URL (Apple no permite fullscreen)
         try { window.scrollTo(0, 1); } catch(e) {}
-        return;
+        return Promise.resolve();
       }
       // PC
-      try {
-        if (unityInstance) unityInstance.SetFullscreen(1);
-      } catch(e) {}
+      try { if (unityInstance) unityInstance.SetFullscreen(1); } catch(e) {}
+      return Promise.resolve();
     }
 
     function salirFullscreen() {
@@ -445,7 +440,7 @@
     }
 
     // ── Botón JUGAR ──────────────────────────────────────────────
-    document.getElementById('btn-jugar').addEventListener('click', async function() {
+    document.getElementById('btn-jugar').addEventListener('click', function() {
       if (isAndroid || isIPad) {
         // Esperar confirmación de fullscreen antes de mostrar la cuenta
         var fsListo = false;
@@ -466,11 +461,11 @@
         } else {
           document.addEventListener('fullscreenchange', arrancarJuego);
           document.addEventListener('webkitfullscreenchange', arrancarJuego);
-          await entrarFullscreen().catch(function() { arrancarJuego(); });
+          entrarFullscreen().catch(function() { arrancarJuego(); });
         }
       } else {
         // iPhone y PC: arrancar directo
-        await entrarFullscreen();
+        entrarFullscreen();
         document.getElementById('menu-content').style.display = 'none';
         document.getElementById('screen-countdown').style.display = 'flex';
         iniciarCuentaYJugar();
