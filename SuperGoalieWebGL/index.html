@@ -38,6 +38,9 @@
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
+    /* Pausar animaciones mientras Unity carga para liberar GPU */
+    #screen-loading.cargando .ball { animation-play-state: running; }
+    #screen-menu .ball-icon { animation-play-state: paused; }
     #screen-loading h2 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 2rem; color: #ffaa00;
@@ -81,6 +84,7 @@
       from { transform: translateY(0); }
       to   { transform: translateY(-10px); }
     }
+    #screen-menu[style*="flex"] .ball-icon { animation-play-state: running; }
     #screen-menu h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 2.4rem; color: #ffaa00;
@@ -532,7 +536,7 @@
       var fakeIv = setInterval(function() {
         if (fakeP < 80) { fakeP += 0.4; document.getElementById('bar-fill').style.width = fakeP + '%'; }
         else { clearInterval(fakeIv); }
-      }, 80);
+      }, 200);
 
       createUnityInstance(canvas, config, function(progress) {
         clearInterval(fakeIv);
