@@ -323,22 +323,15 @@
 
     // ── Fullscreen ───────────────────────────────────────────────
     function entrarFullscreen() {
-      if (isAndroid || isIPad) {
-        // Android e iPad: requestFullscreen real (sin await para no bloquear)
-        var el = document.documentElement;
-        var fsPromise = null;
+      if (isMobile) {
+        // Móvil: usar SetFullscreen de Unity (evita conflicto con requestFullscreen)
         try {
-          if (el.requestFullscreen) fsPromise = el.requestFullscreen();
-          else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+          if (unityInstance) unityInstance.SetFullscreen(1);
         } catch(e) {}
-        // Orientation lock sin await
+        // Intentar orientación landscape
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock('landscape').catch(function(){});
         }
-        return fsPromise || Promise.resolve();
-      }
-      if (isIPhone) {
-        try { window.scrollTo(0, 1); } catch(e) {}
         return Promise.resolve();
       }
       // PC
@@ -441,35 +434,10 @@
 
     // ── Botón JUGAR ──────────────────────────────────────────────
     document.getElementById('btn-jugar').addEventListener('click', function() {
-      if (isAndroid || isIPad) {
-        // Esperar confirmación de fullscreen antes de mostrar la cuenta
-        var fsListo = false;
-
-        function arrancarJuego() {
-          if (fsListo) return;
-          fsListo = true;
-          document.removeEventListener('fullscreenchange', arrancarJuego);
-          document.removeEventListener('webkitfullscreenchange', arrancarJuego);
-          document.getElementById('menu-content').style.display = 'none';
-          document.getElementById('screen-countdown').style.display = 'flex';
-          iniciarCuentaYJugar();
-        }
-
-        // Si ya está en fullscreen (segunda partida), arrancar directo
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-          arrancarJuego();
-        } else {
-          document.addEventListener('fullscreenchange', arrancarJuego);
-          document.addEventListener('webkitfullscreenchange', arrancarJuego);
-          entrarFullscreen().catch(function() { arrancarJuego(); });
-        }
-      } else {
-        // iPhone y PC: arrancar directo
-        entrarFullscreen();
-        document.getElementById('menu-content').style.display = 'none';
-        document.getElementById('screen-countdown').style.display = 'flex';
-        iniciarCuentaYJugar();
-      }
+      entrarFullscreen();
+      document.getElementById('menu-content').style.display = 'none';
+      document.getElementById('screen-countdown').style.display = 'flex';
+      iniciarCuentaYJugar();
     });
 
     // ── Botón VOLVER AL MENÚ ─────────────────────────────────────
@@ -507,11 +475,14 @@
       }
     }
 
-        // Silenciar requestFullscreen en iPhone — Unity lo llama internamente
-    if (isIPhone) {
+        // Silenciar requestFullscreen en móviles para evitar errores de Unity
+    if (isMobile) {
       HTMLElement.prototype.requestFullscreen = function() {
         return Promise.resolve();
       };
+      if (HTMLElement.prototype.webkitRequestFullscreen) {
+        HTMLElement.prototype.webkitRequestFullscreen = function() {};
+      }
     }
 
     var buildUrl  = 'Build';
