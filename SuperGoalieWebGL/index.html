@@ -74,7 +74,7 @@
       padding: 16px 0;
     }
     #screen-menu .ball-icon {
-      font-size: 56px;
+      font-size: 40px;
       animation: bounce 1s ease infinite alternate;
     }
     @keyframes bounce {
@@ -89,8 +89,8 @@
     }
     #screen-menu p {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 1.1rem; color: #ccd9ff;
-      text-align: center; line-height: 1.5;
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem); color: #ccd9ff;
+      text-align: center; line-height: 1.4;
     }
     #screen-menu p span { color: #1a8fff; }
     #btn-jugar {
@@ -285,7 +285,8 @@
     var isIOS     = isIPhone || isIPad;
     var unityInstance = null;
     var unityLoaded = false;
-    var juegoActivo = false; // true cuando el juego está corriendo
+    var juegoActivo = false;
+    var unityListo = false; // true cuando Unity está 100% inicializado // true cuando el juego está corriendo
 
     // ── Pantallas ────────────────────────────────────────────────
     function show(id) { document.getElementById(id).style.display = 'flex'; }
@@ -293,6 +294,9 @@
 
     // ── Orientación ──────────────────────────────────────────────
     function checkOrientacion() {
+      // Nunca mostrar menú hasta que Unity esté 100% listo
+      if (!unityListo) return;
+
       if (!isMobile) {
         hide('screen-rotate');
         if (!juegoActivo) show('screen-menu');
@@ -300,18 +304,14 @@
       }
       var portrait = window.innerHeight > window.innerWidth;
       if (portrait) {
-        // En portrait: mostrar aviso solo si estamos en el menú
         if (!juegoActivo) {
           show('screen-rotate');
           hide('screen-menu');
         } else {
-          // Jugando: mostrar aviso de girar pero sin quitar el juego
           show('screen-rotate');
         }
       } else {
-        // En landscape: ocultar aviso siempre
         hide('screen-rotate');
-        // Solo mostrar menú si NO estamos jugando
         if (!juegoActivo) show('screen-menu');
       }
     }
@@ -566,15 +566,16 @@
         var bar = document.getElementById('bar-fill');
         if (bar) bar.style.width = '100%';
 
-        // Esperar que Unity se estabilice antes de mostrar menú
+        // Esperar que Unity se estabilice completamente
         setTimeout(function() {
+          unityListo = true; // Unity 100% listo
           loading.style.transition = 'opacity 0.4s';
           loading.style.opacity = '0';
           setTimeout(function() {
             loading.style.display = 'none';
-            checkOrientacion(); // muestra menú listo para jugar
+            checkOrientacion(); // ahora sí mostrar rotate o menú
           }, 400);
-        }, 1500); // 1.5s para que Unity esté 100% listo
+        }, 1500);
 
         // Botón fullscreen de Unity
         document.querySelector('#unity-fullscreen-button').onclick = function() {
