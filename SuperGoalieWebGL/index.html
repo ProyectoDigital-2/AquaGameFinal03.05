@@ -323,19 +323,27 @@
 
     // ── Fullscreen ───────────────────────────────────────────────
     function entrarFullscreen() {
-      if (isMobile) {
-        // Móvil: usar SetFullscreen de Unity (evita conflicto con requestFullscreen)
-        try {
-          if (unityInstance) unityInstance.SetFullscreen(1);
-        } catch(e) {}
-        // Intentar orientación landscape
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(function(){});
-        }
-        return Promise.resolve();
+      // Intentar orientation lock en todos los móviles
+      if (isMobile && screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(function(){});
       }
-      // PC
-      try { if (unityInstance) unityInstance.SetFullscreen(1); } catch(e) {}
+      // Usar requestFullscreen nativo — viene del gesto del usuario
+      var el = document.documentElement;
+      try {
+        if (el.requestFullscreen) {
+          return el.requestFullscreen().catch(function() {
+            // Si falla, intentar con SetFullscreen de Unity
+            try { if (unityInstance) unityInstance.SetFullscreen(1); } catch(e) {}
+          });
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        } else {
+          // Fallback: SetFullscreen de Unity
+          try { if (unityInstance) unityInstance.SetFullscreen(1); } catch(e) {}
+        }
+      } catch(e) {
+        try { if (unityInstance) unityInstance.SetFullscreen(1); } catch(e2) {}
+      }
       return Promise.resolve();
     }
 
@@ -434,6 +442,7 @@
 
     // ── Botón JUGAR ──────────────────────────────────────────────
     document.getElementById('btn-jugar').addEventListener('click', function() {
+      _fsPermitido = true; // permitir requestFullscreen solo esta vez
       entrarFullscreen();
       document.getElementById('menu-content').style.display = 'none';
       document.getElementById('screen-countdown').style.display = 'flex';
@@ -475,15 +484,17 @@
       }
     }
 
-        // Silenciar requestFullscreen en móviles para evitar errores de Unity
-    if (isMobile) {
-      HTMLElement.prototype.requestFullscreen = function() {
-        return Promise.resolve();
-      };
-      if (HTMLElement.prototype.webkitRequestFullscreen) {
-        HTMLElement.prototype.webkitRequestFullscreen = function() {};
+        // Interceptar requestFullscreen — permitir solo si viene de btn-jugar
+    var _fsPermitido = false;
+    var _origRFS = HTMLElement.prototype.requestFullscreen;
+    HTMLElement.prototype.requestFullscreen = function() {
+      if (_fsPermitido) {
+        _fsPermitido = false; // reset para próxima vez
+        return _origRFS ? _origRFS.call(this) : Promise.resolve();
       }
-    }
+      // Llamada interna de Unity — silenciar
+      return Promise.resolve();
+    };
 
     var buildUrl  = 'Build';
     var loaderUrl = buildUrl + '/05.05.loader.js';
@@ -555,15 +566,15 @@
         var bar = document.getElementById('bar-fill');
         if (bar) bar.style.width = '100%';
 
-        // Fade out rápido — sin pantalla negra
+        // Esperar que Unity se estabilice antes de mostrar menú
         setTimeout(function() {
           loading.style.transition = 'opacity 0.4s';
           loading.style.opacity = '0';
           setTimeout(function() {
             loading.style.display = 'none';
-            checkOrientacion();
+            checkOrientacion(); // muestra menú listo para jugar
           }, 400);
-        }, 600);
+        }, 1500); // 1.5s para que Unity esté 100% listo
 
         // Botón fullscreen de Unity
         document.querySelector('#unity-fullscreen-button').onclick = function() {
