@@ -203,6 +203,44 @@
       font-size: 1rem; color: #1a8fff;
       text-align: center;
     }
+    /* ══════════════════════════════════════
+       6. AVISO GIRAR HORIZONTAL (en menú)
+    ══════════════════════════════════════ */
+    #hint-rotate {
+      display: none;
+      align-items: center; justify-content: center;
+      gap: 8px;
+      background: rgba(26,143,255,0.12);
+      border: 1px solid rgba(26,143,255,0.4);
+      border-radius: 12px;
+      padding: 8px 16px;
+      width: 100%; max-width: 320px;
+      animation: hintpulse 2.5s ease-in-out infinite;
+    }
+    @keyframes hintpulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    #hint-rotate .hint-icon {
+      font-size: 1.4rem;
+      animation: tiltphone 2.5s ease-in-out infinite;
+      transform-origin: center;
+    }
+    @keyframes tiltphone {
+      0%, 100% { transform: rotate(0deg); }
+      40% { transform: rotate(90deg); }
+      60% { transform: rotate(90deg); }
+    }
+    #hint-rotate span {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem; color: #1a8fff;
+      line-height: 1.3; text-align: left;
+    }
+    #hint-rotate strong {
+      display: block;
+      color: #ccd9ff; font-size: 0.9rem;
+    }
+
     #btn-continuar {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 1.4rem; letter-spacing: 3px;
@@ -232,6 +270,11 @@
       <div class="ball-icon">⚽</div>
       <h1>¡A PATEAR!</h1>
       <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
+      <!-- Aviso girar horizontal -->
+      <div id="hint-rotate">
+        <div class="hint-icon">📱</div>
+        <span><strong>Gira tu dispositivo</strong>Mejor vista en horizontal</span>
+      </div>
       <button id="btn-jugar">¡JUGAR!</button>
       <button id="btn-menu">← VOLVER AL MENÚ</button>
     </div>
@@ -289,6 +332,13 @@
     function checkOrientacion() {
       hide('screen-rotate');
       if (!juegoActivo) show('screen-menu');
+
+      // Mostrar aviso "girar horizontal" solo en móvil vertical
+      var hint = document.getElementById('hint-rotate');
+      if (hint && isMobile) {
+        var isPortrait = window.innerHeight > window.innerWidth;
+        hint.style.display = isPortrait ? 'flex' : 'none';
+      }
     }
 
     window.addEventListener('orientationchange', function() {
