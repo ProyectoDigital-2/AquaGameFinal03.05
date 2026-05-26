@@ -31,6 +31,13 @@
       touch-action: none;
     }
 
+    @media (orientation: portrait) and (max-width: 768px) {
+      #unity-canvas {
+        transform: scale(0.90);
+        transform-origin: center center;
+      }
+    }
+
     /* ── Menú ── */
     #screen-menu {
       position: fixed; inset: 0; z-index: 200;
@@ -87,10 +94,24 @@
     /* ── Girar dispositivo ── */
     #screen-rotate {
       position: fixed; inset: 0; z-index: 300;
-      background: #050e1f; display: none;
+      background: rgba(5,14,31,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
       flex-direction: column;
       align-items: center; justify-content: center; gap: 16px;
       font-family: Arial, sans-serif;
+    }
+
+    #rotate-box {
+      background: linear-gradient(145deg,#072540,#031528);
+      border: 2px solid rgba(255,170,0,0.4);
+      border-radius: 24px;
+      padding: 36px 40px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 16px;
+      box-shadow: 0 0 40px rgba(255,170,0,0.2), 0 0 80px rgba(26,90,255,0.1);
+      max-width: 320px; width: 90%;
     }
 
     #screen-rotate .ricon {
@@ -151,6 +172,10 @@
     <div id="menu-content">
       <h1>¡A PATEAR!</h1>
       <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
+      <div id="rotate-hint" style="display:none;align-items:center;gap:10px;background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.3);border-radius:12px;padding:10px 16px;width:100%;max-width:300px;">
+        <span style="font-size:1.6rem;">🔄</span>
+        <span style="font-size:0.85rem;color:#ffaa00;line-height:1.3;">Gira tu dispositivo a horizontal para mejor experiencia</span>
+      </div>
       <button id="btn-jugar">¡JUGAR!</button>
       <button id="btn-volver">← VOLVER AL MENÚ</button>
     </div>
@@ -158,10 +183,12 @@
 
   <!-- Girar al inicio -->
   <div id="screen-rotate">
-    <div class="ricon">📱</div>
-    <h2>GIRA TU DISPOSITIVO</h2>
-    <p>El juego se ve mejor en horizontal</p>
-    <p id="rotate-secs-wrap">Continuando en <span id="rotate-secs">5</span>s...</p>
+    <div id="rotate-box">
+      <div class="ricon">📱</div>
+      <h2>GIRA TU DISPOSITIVO</h2>
+      <p>El juego se ve mejor en horizontal</p>
+      <p id="rotate-secs-wrap">Continuando en <span id="rotate-secs">3</span>s...</p>
+    </div>
   </div>
 
   <!-- Fin de juego -->
@@ -195,17 +222,28 @@
     // ── Orientación ──────────────────────────────────────────────
     function checkOrientacion() {
       if (!unityListo) return;
+
+      var hint = document.getElementById('rotate-hint');
+
       if (!isMobile) {
         hide('screen-rotate');
+        if (hint) hint.style.display = 'none';
         if (!juegoActivo) show('screen-menu');
         return;
       }
+
       var portrait = window.innerHeight > window.innerWidth;
+
+      // Mostrar hint de girar siempre en móvil dentro del menú
+      if (hint) hint.style.display = 'flex';
+
       if (portrait) {
+        // En portrait: mostrar rotate screen con countdown
         if (!juegoActivo) hide('screen-menu');
         show('screen-rotate');
         iniciarCountdownRotate();
       } else {
+        // En landscape: ocultar rotate, mostrar menú
         pararCountdownRotate();
         hide('screen-rotate');
         if (!juegoActivo) show('screen-menu');
@@ -214,7 +252,7 @@
 
     function iniciarCountdownRotate() {
       if (rotateTimer) return;
-      var s = 5;
+      var s = 3;
       document.getElementById('rotate-secs').textContent = s;
       rotateTimer = setInterval(function() {
         s--;
@@ -229,7 +267,7 @@
 
     function pararCountdownRotate() {
       if (rotateTimer) { clearInterval(rotateTimer); rotateTimer = null; }
-      document.getElementById('rotate-secs').textContent = '5';
+      document.getElementById('rotate-secs').textContent = '3';
     }
 
     window.addEventListener('orientationchange', function() { setTimeout(checkOrientacion, 200); });
