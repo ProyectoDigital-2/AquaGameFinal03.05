@@ -207,7 +207,7 @@
        6. AVISO GIRAR HORIZONTAL (en menú)
     ══════════════════════════════════════ */
     #hint-rotate {
-      display: none;
+      display: flex;
       align-items: center; justify-content: center;
       gap: 8px;
       background: rgba(26,143,255,0.12);
@@ -333,12 +333,6 @@
       hide('screen-rotate');
       if (!juegoActivo) show('screen-menu');
 
-      // Mostrar aviso "girar horizontal" solo en móvil vertical
-      var hint = document.getElementById('hint-rotate');
-      if (hint && isMobile) {
-        var isPortrait = window.innerHeight > window.innerWidth;
-        hint.style.display = isPortrait ? 'flex' : 'none';
-      }
     }
 
     window.addEventListener('orientationchange', function() {
