@@ -182,12 +182,20 @@
     // ── Fullscreen ───────────────────────────────────────────────
     function entrarFullscreen() {
       if (isMobile) {
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(function(){});
+        var portrait = window.innerHeight > window.innerWidth;
+        if (portrait) {
+          // Portrait: no fullscreen, canvas en tamaño natural se ve mejor
+          window.scrollTo(0, 1);
+        } else {
+          // Landscape: fullscreen normal
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(function(){});
+          }
+          try { if (unityInstance) unityInstance.SetFullscreen(1); } catch(e) {}
         }
-        window.scrollTo(0, 1);
         return;
       }
+      // PC: fullscreen normal
       try { if (unityInstance) unityInstance.SetFullscreen(1); } catch(e) {}
     }
 
