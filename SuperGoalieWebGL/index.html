@@ -33,7 +33,7 @@
 
     @media (orientation: portrait) and (max-width: 768px) {
       #unity-canvas {
-        transform: scale(0.90);
+        transform: scale(0.80);
         transform-origin: center center;
       }
     }
@@ -92,46 +92,9 @@
     #btn-volver:active { transform: scale(0.97); }
 
     /* ── Girar dispositivo ── */
-    #screen-rotate {
-      position: fixed; inset: 0; z-index: 300;
-      background: rgba(5,14,31,0.7);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: none;
-      flex-direction: column;
-      align-items: center; justify-content: center; gap: 16px;
-      font-family: Arial, sans-serif;
-    }
 
-    #rotate-box {
-      background: linear-gradient(145deg,#072540,#031528);
-      border: 2px solid rgba(255,170,0,0.4);
-      border-radius: 24px;
-      padding: 36px 40px;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 16px;
-      box-shadow: 0 0 40px rgba(255,170,0,0.2), 0 0 80px rgba(26,90,255,0.1);
-      max-width: 320px; width: 90%;
-    }
 
-    #screen-rotate .ricon {
-      font-size: 60px;
-      animation: rphone 1.5s ease-in-out infinite;
-    }
 
-    @keyframes rphone {
-      0%,100% { transform: rotate(0deg); }
-      40%,60%  { transform: rotate(90deg); }
-    }
-
-    #screen-rotate h2 {
-      font-size: 1.6rem; color: #ffaa00;
-      letter-spacing: 3px; text-align: center;
-    }
-
-    #screen-rotate p { font-size: 0.95rem; color: #1a8fff; text-align: center; }
-
-    #rotate-secs-wrap { font-size: 0.8rem; color: rgba(255,255,255,0.4); }
 
     /* ── Fin de juego ── */
     #screen-end {
@@ -181,15 +144,7 @@
     </div>
   </div>
 
-  <!-- Girar al inicio -->
-  <div id="screen-rotate">
-    <div id="rotate-box">
-      <div class="ricon">📱</div>
-      <h2>GIRA TU DISPOSITIVO</h2>
-      <p>El juego se ve mejor en horizontal</p>
-      <p id="rotate-secs-wrap">Continuando en <span id="rotate-secs">3</span>s...</p>
-    </div>
-  </div>
+
 
   <!-- Fin de juego -->
   <div id="screen-end">
@@ -214,7 +169,6 @@
     var unityInstance = null;
     var unityListo    = false;
     var juegoActivo   = false;
-    var rotateTimer   = null;
 
     function show(id) { document.getElementById(id).style.display = 'flex'; }
     function hide(id) { document.getElementById(id).style.display = 'none'; }
@@ -222,52 +176,9 @@
     // ── Orientación ──────────────────────────────────────────────
     function checkOrientacion() {
       if (!unityListo) return;
-
       var hint = document.getElementById('rotate-hint');
-
-      if (!isMobile) {
-        hide('screen-rotate');
-        if (hint) hint.style.display = 'none';
-        if (!juegoActivo) show('screen-menu');
-        return;
-      }
-
-      var portrait = window.innerHeight > window.innerWidth;
-
-      // Mostrar hint de girar siempre en móvil dentro del menú
-      if (hint) hint.style.display = 'flex';
-
-      if (portrait) {
-        // En portrait: mostrar rotate screen con countdown
-        if (!juegoActivo) hide('screen-menu');
-        show('screen-rotate');
-        iniciarCountdownRotate();
-      } else {
-        // En landscape: ocultar rotate, mostrar menú
-        pararCountdownRotate();
-        hide('screen-rotate');
-        if (!juegoActivo) show('screen-menu');
-      }
-    }
-
-    function iniciarCountdownRotate() {
-      if (rotateTimer) return;
-      var s = 3;
-      document.getElementById('rotate-secs').textContent = s;
-      rotateTimer = setInterval(function() {
-        s--;
-        document.getElementById('rotate-secs').textContent = s;
-        if (s <= 0) {
-          pararCountdownRotate();
-          hide('screen-rotate');
-          if (!juegoActivo) show('screen-menu');
-        }
-      }, 1000);
-    }
-
-    function pararCountdownRotate() {
-      if (rotateTimer) { clearInterval(rotateTimer); rotateTimer = null; }
-      document.getElementById('rotate-secs').textContent = '3';
+      if (hint) hint.style.display = isMobile ? 'flex' : 'none';
+      if (!juegoActivo) show('screen-menu');
     }
 
     window.addEventListener('orientationchange', function() { setTimeout(checkOrientacion, 200); });
