@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.loader.js" as="script">
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.framework.js" as="script">
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.wasm" as="fetch" type="application/wasm" crossorigin>
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.data" as="fetch" crossorigin>
 
 <style>
 body {
@@ -18,20 +22,6 @@ body {
   width: 100vw !important;
   height: 100vh !important;
   object-fit: contain;
-}
-
-@media (orientation: portrait) {
-  #unity-container {
-    transform: rotate(90deg);
-    transform-origin: center center;
-    width: 100vh !important;
-    height: 100vw !important;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -50vh;
-    margin-top: -50vw;
-  }
 }
 
 .pregame-steps {
@@ -68,12 +58,52 @@ body {
   color: #fff;
 }
 /* ── Pre-game modal/* ── Pre-game modal ─────────────────────────────────────────── */
+.orientation-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(236,113,28,.1);
+  border: 1px solid rgba(236,113,28,.28);
+  color: #ffd3b2;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+}
+.orientation-note .orientation-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.orientation-note strong {
+  color: #fff;
+}
 #pregameModal {
   position: fixed; inset: 0; z-index: 9997;
   background: rgba(0,10,28,.96);
   display: flex; align-items: center; justify-content: center;
 }
 #pregameModal.hidden { display: none; }
+#unityFrameOverlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: #050e1f;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+#unityFrameOverlay.hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+#unityFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #050e1f;
+}
 .pregame-card {
   background: linear-gradient(160deg,#072540,#031528);
   border: 1.5px solid rgba(10,146,211,.3);
@@ -785,7 +815,7 @@ button{
   <div class="pregame-card">
     <div class="pg-kicker">Aqua Champions 2026</div>
     <div class="pg-title" style="font-size:22px;margin-bottom:8px">¿Cómo quieres jugar?</div>
-    <div class="pg-sub">Elige tu modo antes de usar tu tiro único oficial.</div>
+    <div class="pg-sub">Elige tu modo antes de usar tu tiro único oficial. Puedes jugar vertical u horizontal.</div>
     <div class="pregame-steps">
       <div class="pregame-step">
         <div class="pregame-step-num" style="background:linear-gradient(135deg,#0A92D3,#0b7bb5)">🎯</div>
@@ -838,7 +868,7 @@ button{
       <div class="pregame-step">
         <div class="pregame-step-num">1</div>
         <div class="pregame-step-text">
-          Coloca tu dispositivo en <strong>horizontal</strong> &nbsp;&#128242;&#8635;
+          Puedes jugar con tu dispositivo en <strong>vertical u horizontal</strong>.
         </div>
       </div>
       <div class="pregame-step">
@@ -858,6 +888,11 @@ button{
 
 
 
+    <div class="orientation-note">
+      <span class="orientation-icon">&#128242;&#8635;</span>
+      <span><strong>Gira tu dispositivo</strong><br>El juego se ve mejor en horizontal, pero puedes jugar en vertical si lo prefieres.</span>
+    </div>
+
     <button class="pregame-play-btn" onclick="launchUnity()">
       &#9654;&nbsp; ¡Lanzar penal!
     </button>
@@ -866,6 +901,10 @@ button{
     </button>
   </div>
 </div>
+</div>
+
+<div id="unityFrameOverlay" class="hidden">
+  <iframe id="unityFrame" title="Super Goalie" allow="fullscreen; autoplay"></iframe>
 </div>
 
 <script>
@@ -3975,6 +4014,46 @@ function cerrarPracticaEndAlMenu() {
   document.getElementById("modoModal").classList.remove("hidden");
 }
 
+let unityWarmupStarted = false;
+let unityFrameSrc = "";
+
+function warmUnityBuild() {
+  if (unityWarmupStarted) return;
+  unityWarmupStarted = true;
+
+  const unityFiles = [
+    "SuperGoalieWebGL/Build/05.05.loader.js",
+    "SuperGoalieWebGL/Build/05.05.framework.js",
+    "SuperGoalieWebGL/Build/05.05.wasm",
+    "SuperGoalieWebGL/Build/05.05.data",
+  ];
+
+  unityFiles.forEach(function(url) {
+    fetch(url, { cache: "force-cache" }).catch(function() {});
+  });
+}
+
+window.addEventListener("load", function() {
+  setTimeout(warmUnityBuild, 800);
+});
+
+function buildUnityUrl(params) {
+  params.set("_v", "orientation-note-1");
+  return "SuperGoalieWebGL/index.html?" + params.toString();
+}
+
+function prepareUnityFrame(params) {
+  const frame = document.getElementById("unityFrame");
+  if (!frame) return buildUnityUrl(params);
+
+  const url = buildUnityUrl(params);
+  if (unityFrameSrc !== url) {
+    unityFrameSrc = url;
+    frame.src = url;
+  }
+  return url;
+}
+
 function iniciarPractica() {
   document.getElementById("modoModal").classList.add("hidden");
   document.getElementById("practicaEndModal").classList.add("hidden");
@@ -4073,6 +4152,7 @@ function _terminarPractica() {
 
 function irSuperGoalie() {  const decoded = state.promoAccessDecoded;
   const branch  = decoded ? getBranchById(decoded.sucId) : null;
+  warmUnityBuild();
 
   // Fill pregame modal info
   const probMap = {200: "72%", 300: "82%", 500: "92%"};
@@ -4087,6 +4167,14 @@ function irSuperGoalie() {  const decoded = state.promoAccessDecoded;
     if (pgProb)   pgProb.textContent   = probMap[decoded.amount] || "—";
     if (pgBranch) pgBranch.textContent = branch?.name?.replace("Sucursal ","") || "—";
     if (pgKey)    pgKey.textContent    = key;
+
+    prepareUnityFrame(new URLSearchParams({
+      key:    key,
+      sucId:  decoded.sucId,
+      amount: decoded.amount,
+      seq:    decoded.seq,
+      branch: branch?.name || "",
+    }));
   }
 
   document.getElementById("pregameModal").classList.remove("hidden");
@@ -4122,9 +4210,9 @@ function launchUnity() {
     branchAccessCode:  state.branchAccessCode,
   }));
 
-  setTimeout(() => {
-    window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
-  }, 1000);
+  prepareUnityFrame(params);
+  document.getElementById("pregameModal").classList.add("hidden");
+  document.getElementById("unityFrameOverlay").classList.remove("hidden");
 }
 </script>
 
