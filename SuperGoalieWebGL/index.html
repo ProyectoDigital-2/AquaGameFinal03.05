@@ -19,43 +19,80 @@
         justify-content: center;
       }
 
-      /* Canvas siempre en DOM, nunca se destruye */
-      #canvas-frame {
-        border: 3px solid rgba(26,143,255,0.7);
-        border-radius: 12px;
-        box-shadow: 0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15);
-        overflow: hidden;
-        flex-shrink: 0;
-        display: block;
-      }
-      #unity-canvas { background: #000; display: block; }
-
-      /* Loading bar centrada sobre el canvas */
-      #unity-loading-bar {
-        position: fixed; top: 50%; left: 50%;
-        transform: translate(-50%, -50%); display: none; z-index: 10;
-      }
-      #unity-logo { width: 154px; height: 130px; background: url('TemplateData/unity-logo-dark.png') no-repeat center; }
-      #unity-progress-bar-empty { width: 141px; height: 18px; margin-top: 10px; background: url('TemplateData/progress-bar-empty-dark.png') no-repeat center; }
-      #unity-progress-bar-full { width: 0%; height: 18px; background: url('TemplateData/progress-bar-full-dark.png') no-repeat center; }
-      #unity-warning { position: fixed; top: 0; left: 0; right: 0; z-index: 20; }
-      #unity-footer { display: none; }
-
-      /* Letreros */
-      #portrait-hints {
-        display: none;
+      /* ── MENÚ ─────────────────────────────────────── */
+      #screen-menu {
+        display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
-        width: 100%;
-        margin-top: 8px;
+        justify-content: center;
+        width: 100%; height: 100%;
+        gap: 18px;
+        padding: 24px;
       }
+
+      .ball-icon { font-size: 3rem; animation: ballbounce 1.8s ease-in-out infinite; }
+      @keyframes ballbounce {
+        0%,100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+
+      #screen-menu h1 {
+        font-family: 'Arial Black', Arial, sans-serif;
+        font-size: 2rem; font-weight: 900;
+        color: #fff;
+        text-shadow: 0 0 30px rgba(26,143,255,0.8), 0 2px 4px rgba(0,0,0,0.5);
+        letter-spacing: 2px;
+      }
+
+      #screen-menu p {
+        font-family: Arial, sans-serif;
+        font-size: 0.9rem; color: rgba(255,255,255,0.7);
+        text-align: center; line-height: 1.5;
+        max-width: 300px;
+      }
+      #screen-menu p span { color: #1a8fff; font-weight: 600; }
+
+      /* Barra de precarga */
+      #preload-bar-wrap {
+        width: 100%; max-width: 300px;
+        height: 4px; background: rgba(255,255,255,0.1);
+        border-radius: 4px; overflow: hidden;
+      }
+      #preload-bar {
+        height: 100%; width: 0%;
+        background: linear-gradient(90deg, #1a8fff, #00c9ff);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+      #preload-label {
+        font-family: Arial, sans-serif;
+        font-size: 0.72rem; color: rgba(255,255,255,0.4);
+        text-align: center;
+      }
+
+      /* Botones */
+      #btn-jugar {
+        width: 100%; max-width: 300px;
+        padding: 16px;
+        background: linear-gradient(135deg, #ff8c00, #ff5500);
+        border: none; border-radius: 14px;
+        color: #fff; font-family: 'Arial Black', Arial, sans-serif;
+        font-size: 1.1rem; font-weight: 900; letter-spacing: 2px;
+        cursor: pointer;
+        box-shadow: 0 0 20px rgba(255,120,0,0.5), 0 4px 15px rgba(0,0,0,0.3);
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+      #btn-jugar:active { transform: scale(0.97); box-shadow: 0 0 10px rgba(255,120,0,0.3); }
+      #btn-jugar:disabled {
+        background: linear-gradient(135deg, #555, #333);
+        box-shadow: none; cursor: default;
+      }
+
+      /* Hint cards */
       .hint-card {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 9px 14px;
+        width: 100%; max-width: 300px;
+        display: flex; align-items: center;
+        gap: 10px; padding: 9px 14px;
         border-radius: 12px;
       }
       .hint-card.kick {
@@ -68,23 +105,65 @@
         border: 1px solid rgba(26,143,255,0.45);
         box-shadow: 0 0 10px rgba(26,143,255,0.2);
       }
-      .hint-emoji { font-size: 1.4rem; flex-shrink: 0; }
-      .hint-text { font-family: Arial, sans-serif; font-size: 0.78rem; line-height: 1.3; }
+      .hint-emoji { font-size: 1.3rem; flex-shrink: 0; }
+      .hint-text { font-family: Arial, sans-serif; font-size: 0.76rem; line-height: 1.3; }
       .hint-card.kick .hint-text { color: #ffd080; }
       .hint-card.rotate .hint-text { color: #80d0ff; }
-      .hint-text strong { display: block; font-size: 0.85rem; margin-bottom: 1px; }
+      .hint-text strong { display: block; font-size: 0.82rem; margin-bottom: 1px; }
       .hint-card.kick .hint-text strong { color: #ffb300; }
       .hint-card.rotate .hint-text strong { color: #1a8fff; }
+
+      /* ── JUEGO ─────────────────────────────────────── */
+      #screen-game {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%; height: 100%;
+      }
+
+      #canvas-frame {
+        border: 3px solid rgba(26,143,255,0.7);
+        border-radius: 12px;
+        box-shadow: 0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      #unity-canvas { background: #000; display: block; }
+
+      #game-hints {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      #unity-loading-bar {
+        position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        display: none; z-index: 10;
+      }
+      #unity-logo { width: 154px; height: 130px; background: url('TemplateData/unity-logo-dark.png') no-repeat center; }
+      #unity-progress-bar-empty { width: 141px; height: 18px; margin-top: 10px; background: url('TemplateData/progress-bar-empty-dark.png') no-repeat center; }
+      #unity-progress-bar-full { width: 0%; height: 18px; background: url('TemplateData/progress-bar-full-dark.png') no-repeat center; }
+      #unity-warning { position: fixed; top: 0; left: 0; right: 0; z-index: 20; }
+      #unity-footer { display: none; }
     </style>
   </head>
   <body>
 
-    <div id="canvas-frame">
-      <canvas id="unity-canvas" tabindex="-1"></canvas>
-    </div>
+    <!-- MENÚ PRINCIPAL -->
+    <div id="screen-menu">
+      <div class="ball-icon">⚽</div>
+      <h1>¡A PATEAR!</h1>
+      <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
 
+      <div id="preload-bar-wrap">
+        <div id="preload-bar"></div>
+      </div>
+      <div id="preload-label">Preparando el juego...</div>
 
-    <div id="portrait-hints">
       <div class="hint-card kick">
         <div class="hint-emoji">⚽</div>
         <div class="hint-text">
@@ -97,6 +176,31 @@
         <div class="hint-text">
           <strong>Mejor vista</strong>
           Gira tu dispositivo en horizontal
+        </div>
+      </div>
+
+      <button id="btn-jugar" disabled>⏳ &nbsp;CARGANDO...</button>
+    </div>
+
+    <!-- PANTALLA DE JUEGO (canvas oculto hasta click) -->
+    <div id="screen-game">
+      <div id="canvas-frame">
+        <canvas id="unity-canvas" tabindex="-1"></canvas>
+      </div>
+      <div id="game-hints">
+        <div class="hint-card kick">
+          <div class="hint-emoji">⚽</div>
+          <div class="hint-text">
+            <strong>¡Lanza el penal!</strong>
+            Toca donde quieres colocar el tiro
+          </div>
+        </div>
+        <div class="hint-card rotate">
+          <div class="hint-emoji">🔄</div>
+          <div class="hint-text">
+            <strong>Mejor vista</strong>
+            Gira tu dispositivo en horizontal
+          </div>
         </div>
       </div>
     </div>
@@ -113,8 +217,7 @@
     <script>
       var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       var canvas = document.getElementById("unity-canvas");
-      var frame = document.getElementById("canvas-frame");
-      var hints = document.getElementById("portrait-hints");
+      var unityReady = false;
 
       if (isMobile) {
         var meta = document.createElement('meta');
@@ -123,46 +226,47 @@
         document.getElementsByTagName('head')[0].appendChild(meta);
       }
 
-      function applyLayout() {
+      function applyGameLayout() {
+        var frame = document.getElementById("canvas-frame");
+        var hints = document.getElementById("game-hints");
         var portrait = isMobile && window.innerHeight > window.innerWidth;
 
         if (portrait) {
-          // Marco visible
           frame.style.borderRadius = "12px";
           frame.style.boxShadow = "0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15)";
           frame.style.border = "3px solid rgba(26,143,255,0.7)";
           hints.style.display = "flex";
 
-          var reservedH = 175; // logo + hints + gaps
+          var reservedH = 160;
           var pad = 24;
           var maxW = window.innerWidth - pad;
           var maxH = window.innerHeight - reservedH;
           var w = Math.min(maxW, Math.round(maxH * (960/600)));
           var h = Math.round(w * (600/960));
-
           canvas.style.width = w + "px";
           canvas.style.height = h + "px";
-
-          // Ajustar ancho de hints al canvas
           hints.style.width = w + "px";
-
         } else {
-          // Horizontal o desktop: sin marco, fullscreen
           frame.style.borderRadius = "0";
           frame.style.boxShadow = "none";
           frame.style.border = "none";
           hints.style.display = "none";
-
           canvas.style.width = window.innerWidth + "px";
           canvas.style.height = window.innerHeight + "px";
-
           if (!isMobile && document.documentElement.requestFullscreen && !document.fullscreenElement) {
             document.documentElement.requestFullscreen().catch(function(){});
           }
         }
       }
 
-      applyLayout();
+      // Botón JUGAR
+      document.getElementById("btn-jugar").addEventListener("click", function() {
+        if (!unityReady) return;
+        // Mostrar juego, ocultar menú
+        document.getElementById("screen-menu").style.display = "none";
+        document.getElementById("screen-game").style.display = "flex";
+        applyGameLayout();
+      });
 
       function unityShowBanner(msg, type) {
         var wb = document.querySelector("#unity-warning");
@@ -190,22 +294,30 @@
         showBanner: unityShowBanner,
       };
 
-      document.getElementById("unity-loading-bar").style.display = "block";
-
+      // Iniciar carga de Unity inmediatamente en segundo plano
       var script = document.createElement("script");
       script.src = buildUrl + "/05.05.loader.js";
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+          // Actualizar barra de precarga en el menú
+          var pct = Math.round(progress * 100);
+          document.getElementById("preload-bar").style.width = pct + "%";
+          document.getElementById("preload-label").textContent = pct < 100
+            ? "Cargando juego... " + pct + "%"
+            : "¡Listo para jugar!";
         }).then((ui) => {
-          document.getElementById("unity-loading-bar").style.display = "none";
-          applyLayout();
+          unityReady = true;
+          // Habilitar botón JUGAR
+          var btn = document.getElementById("btn-jugar");
+          btn.disabled = false;
+          btn.innerHTML = "▶ &nbsp;¡JUGAR!";
+          document.getElementById("preload-label").textContent = "¡Listo! Toca JUGAR para empezar";
         }).catch((msg) => { alert(msg); });
       };
       document.body.appendChild(script);
 
-      window.addEventListener("orientationchange", function() { setTimeout(applyLayout, 300); });
-      window.addEventListener("resize", function() { setTimeout(applyLayout, 150); });
+      window.addEventListener("orientationchange", function() { setTimeout(applyGameLayout, 300); });
+      window.addEventListener("resize", function() { setTimeout(applyGameLayout, 150); });
     </script>
   </body>
 </html>
