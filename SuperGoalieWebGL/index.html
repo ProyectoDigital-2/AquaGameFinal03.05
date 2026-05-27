@@ -260,8 +260,12 @@
           hints.style.display = "none";
           canvas.style.width = window.innerWidth + "px";
           canvas.style.height = window.innerHeight + "px";
-          if (!isMobile && document.documentElement.requestFullscreen && !document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(function(){});
+          // Fullscreen en móvil horizontal y desktop
+          var fsEl = document.documentElement;
+          if (fsEl.requestFullscreen && !document.fullscreenElement) {
+            fsEl.requestFullscreen().catch(function(){});
+          } else if (fsEl.webkitRequestFullscreen && !document.webkitFullscreenElement) {
+            fsEl.webkitRequestFullscreen();
           }
         }
       }
