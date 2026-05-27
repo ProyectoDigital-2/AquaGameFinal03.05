@@ -10,7 +10,7 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
 
       body {
-        background: #000;
+        background: radial-gradient(ellipse at center, #0a1628 0%, #000 100%);
         width: 100%;
         height: 100vh;
         overflow: hidden;
@@ -20,9 +20,14 @@
         justify-content: center;
       }
 
-      #unity-container { position: relative; }
-      #unity-container.unity-desktop { width: 100vw; height: 100vh; }
-      #unity-canvas { background: #000; display: block; }
+      /* ── Desktop / Horizontal ─────────────────────── */
+      #unity-container {
+        position: relative;
+        display: none;
+        width: 100vw;
+        height: 100vh;
+      }
+      #unity-canvas-dh { background: #000; display: block; }
       #unity-loading-bar {
         position: absolute; top: 50%; left: 50%;
         transform: translate(-50%, -50%); display: none;
@@ -33,7 +38,7 @@
       #unity-warning { position: absolute; top: 0; left: 0; right: 0; }
       #unity-footer { display: none; }
 
-      /* ── Wrapper vertical ─────────────────────────── */
+      /* ── Portrait wrapper ─────────────────────────── */
       #portrait-wrapper {
         display: none;
         flex-direction: column;
@@ -41,85 +46,93 @@
         justify-content: center;
         width: 100%;
         height: 100vh;
-        background: radial-gradient(ellipse at center, #0a1628 0%, #000 100%);
+        gap: 12px;
+        padding: 12px;
       }
 
-      /* Marco del canvas */
+      /* Marco canvas */
       #canvas-frame {
-        border: 3px solid rgba(26,143,255,0.6);
+        border: 3px solid rgba(26,143,255,0.7);
         border-radius: 12px;
-        box-shadow:
-          0 0 20px rgba(26,143,255,0.4),
-          0 0 60px rgba(26,143,255,0.15),
-          inset 0 0 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15);
         overflow: hidden;
-        position: relative;
+        flex-shrink: 0;
       }
 
-      /* ── Letreros ─────────────────────────────────── */
+      #unity-canvas-portrait { background: #000; display: block; }
+
+      /* Logo AquaChampions */
+      #logo-aqua {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 0 16px rgba(26,100,255,0.4);
+        flex-shrink: 0;
+      }
+      #logo-aqua img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      /* Letreros */
       #portrait-hints {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
-        margin-top: 16px;
-        width: 90%;
-        max-width: 400px;
+        gap: 8px;
+        width: 100%;
       }
 
       .hint-card {
         width: 100%;
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 16px;
+        gap: 10px;
+        padding: 9px 14px;
         border-radius: 12px;
-        backdrop-filter: blur(8px);
       }
 
       .hint-card.kick {
-        background: linear-gradient(135deg, rgba(255,180,0,0.15), rgba(255,100,0,0.1));
-        border: 1px solid rgba(255,180,0,0.4);
-        box-shadow: 0 0 12px rgba(255,150,0,0.2);
+        background: linear-gradient(135deg, rgba(255,180,0,0.18), rgba(255,100,0,0.1));
+        border: 1px solid rgba(255,180,0,0.45);
+        box-shadow: 0 0 10px rgba(255,150,0,0.2);
       }
 
       .hint-card.rotate {
-        background: linear-gradient(135deg, rgba(26,143,255,0.15), rgba(0,200,255,0.1));
-        border: 1px solid rgba(26,143,255,0.4);
-        box-shadow: 0 0 12px rgba(26,143,255,0.2);
+        background: linear-gradient(135deg, rgba(26,143,255,0.18), rgba(0,200,255,0.1));
+        border: 1px solid rgba(26,143,255,0.45);
+        box-shadow: 0 0 10px rgba(26,143,255,0.2);
       }
 
-      .hint-emoji {
-        font-size: 1.6rem;
-        flex-shrink: 0;
-      }
+      .hint-emoji { font-size: 1.4rem; flex-shrink: 0; }
 
-      .hint-text {
-        font-family: Arial, sans-serif;
-        font-size: 0.82rem;
-        line-height: 1.3;
-      }
-
+      .hint-text { font-family: Arial, sans-serif; font-size: 0.78rem; line-height: 1.3; }
       .hint-card.kick .hint-text { color: #ffd080; }
       .hint-card.rotate .hint-text { color: #80d0ff; }
-
-      .hint-text strong {
-        display: block;
-        font-size: 0.9rem;
-        margin-bottom: 2px;
-      }
-
+      .hint-text strong { display: block; font-size: 0.85rem; margin-bottom: 1px; }
       .hint-card.kick .hint-text strong { color: #ffb300; }
       .hint-card.rotate .hint-text strong { color: #1a8fff; }
     </style>
   </head>
   <body>
 
-    <!-- MODO VERTICAL MÓVIL -->
+    <!-- PORTRAIT MÓVIL -->
     <div id="portrait-wrapper">
       <div id="canvas-frame">
-        <canvas id="unity-canvas" tabindex="-1"></canvas>
+        <canvas id="unity-canvas-portrait" tabindex="-1"></canvas>
       </div>
+
+      <div id="logo-aqua">
+        <img src="https://proyectodigital-2.github.io/Aqua-Champions/img/logo.png" alt="AquaChampions"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
       <div id="portrait-hints">
         <div class="hint-card kick">
           <div class="hint-emoji">⚽</div>
@@ -138,9 +151,9 @@
       </div>
     </div>
 
-    <!-- MODO DESKTOP / HORIZONTAL -->
-    <div id="unity-container" class="unity-desktop" style="display:none">
-      <canvas id="unity-canvas-desktop" tabindex="-1"></canvas>
+    <!-- DESKTOP / HORIZONTAL -->
+    <div id="unity-container">
+      <canvas id="unity-canvas-dh" tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -153,64 +166,43 @@
 
     <script>
       var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      var unityInstance = null;
+      var currentCanvas = null;
 
-      // Elegir canvas correcto
-      var canvas;
-      var portraitWrapper = document.getElementById("portrait-wrapper");
-      var desktopContainer = document.getElementById("unity-container");
+      function isPortrait() { return window.innerHeight > window.innerWidth; }
 
-      function setupCanvases() {
-        var isPortrait = window.innerHeight > window.innerWidth;
-        if (isMobile && isPortrait) {
-          portraitWrapper.style.display = "flex";
-          desktopContainer.style.display = "none";
-          canvas = document.getElementById("unity-canvas");
-          // Tamaño canvas: ancho pantalla - padding del marco
-          var availH = window.innerHeight - 140; var w = Math.min(window.innerWidth - 24, Math.round(availH * (960/600)), 500);
-          var h = Math.round(w * (600 / 960));
-          canvas.style.width = w + "px";
-          canvas.style.height = h + "px";
-          canvas.width = w;
-          canvas.height = h;
+      function applyLayout() {
+        var pw = document.getElementById("portrait-wrapper");
+        var dc = document.getElementById("unity-container");
+
+        if (isMobile && isPortrait()) {
+          pw.style.display = "flex";
+          dc.style.display = "none";
+          currentCanvas = document.getElementById("unity-canvas-portrait");
+
+          // Calcular tamaño dejando espacio para logo + letreros (~180px)
+          var pad = 24;
+          var reservedH = 185;
+          var maxW = window.innerWidth - pad;
+          var maxH = window.innerHeight - reservedH;
+          var w = Math.min(maxW, Math.round(maxH * (960/600)));
+          var h = Math.round(w * (600/960));
+          currentCanvas.style.width = w + "px";
+          currentCanvas.style.height = h + "px";
+          currentCanvas.width = w;
+          currentCanvas.height = h;
         } else {
-          portraitWrapper.style.display = "none";
-          desktopContainer.style.display = "block";
-          canvas = document.getElementById("unity-canvas-desktop");
-          canvas.style.width = window.innerWidth + "px";
-          canvas.style.height = window.innerHeight + "px";
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
+          pw.style.display = "none";
+          dc.style.display = "block";
+          currentCanvas = document.getElementById("unity-canvas-dh");
+          currentCanvas.style.width = window.innerWidth + "px";
+          currentCanvas.style.height = window.innerHeight + "px";
+          currentCanvas.width = window.innerWidth;
+          currentCanvas.height = window.innerHeight;
         }
       }
 
-      setupCanvases();
-
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        if (!warningBanner) return;
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() { warningBanner.removeChild(div); }, 5000);
-        }
-      }
-
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/05.05.loader.js";
-      var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/05.05.data.unityweb",
-        frameworkUrl: buildUrl + "/05.05.framework.js.unityweb",
-        codeUrl: buildUrl + "/05.05.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "Super Goalie Basic",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-      };
+      applyLayout();
 
       if (isMobile) {
         var meta = document.createElement('meta');
@@ -219,31 +211,53 @@
         document.getElementsByTagName('head')[0].appendChild(meta);
       }
 
-      // Mostrar loading bar
+      function unityShowBanner(msg, type) {
+        var wb = document.querySelector("#unity-warning");
+        if (!wb) return;
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        wb.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() { wb.removeChild(div); }, 5000);
+        }
+      }
+
+      var buildUrl = "Build";
+      var config = {
+        arguments: [],
+        dataUrl:      buildUrl + "/05.05.data.unityweb",
+        frameworkUrl: buildUrl + "/05.05.framework.js.unityweb",
+        codeUrl:      buildUrl + "/05.05.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "Super Goalie Basic",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+      };
+
       var lb = document.querySelector("#unity-loading-bar");
       if (lb) lb.style.display = "block";
 
       var script = document.createElement("script");
-      script.src = loaderUrl;
+      script.src = buildUrl + "/05.05.loader.js";
       script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
+        createUnityInstance(currentCanvas, config, (progress) => {
           var bar = document.querySelector("#unity-progress-bar-full");
           if (bar) bar.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
+        }).then((ui) => {
+          unityInstance = ui;
           if (lb) lb.style.display = "none";
-          // Desktop: pantalla completa automática
           if (!isMobile && document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(function(){});
           }
-        }).catch((message) => {
-          alert(message);
-        });
+        }).catch((msg) => { alert(msg); });
       };
       document.body.appendChild(script);
 
-      // Reajustar al girar
-      window.addEventListener("orientationchange", function() { setTimeout(setupCanvases, 200); });
-      window.addEventListener("resize", function() { setTimeout(setupCanvases, 100); });
+      window.addEventListener("orientationchange", function() { setTimeout(applyLayout, 200); });
+      window.addEventListener("resize", function() { setTimeout(applyLayout, 100); });
     </script>
   </body>
 </html>
