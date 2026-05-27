@@ -28,6 +28,7 @@
         width: 100%; height: 100%;
         gap: 18px;
         padding: 24px;
+        overflow-y: auto;
       }
 
       .ball-icon { font-size: 3rem; animation: ballbounce 1.8s ease-in-out infinite; }
@@ -43,14 +44,6 @@
         text-shadow: 0 0 30px rgba(26,143,255,0.8), 0 2px 4px rgba(0,0,0,0.5);
         letter-spacing: 2px;
       }
-
-      #screen-menu p {
-        font-family: Arial, sans-serif;
-        font-size: 0.9rem; color: rgba(255,255,255,0.7);
-        text-align: center; line-height: 1.5;
-        max-width: 300px;
-      }
-      #screen-menu p span { color: #1a8fff; font-weight: 600; }
 
       /* Barra de precarga */
       #preload-bar-wrap {
@@ -157,7 +150,6 @@
     <div id="screen-menu">
       <div class="ball-icon">⚽</div>
       <h1>¡A PATEAR!</h1>
-      <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
 
       <div id="preload-bar-wrap">
         <div id="preload-bar"></div>
@@ -182,7 +174,7 @@
       <button id="btn-jugar" disabled>⏳ &nbsp;CARGANDO...</button>
     </div>
 
-    <!-- PANTALLA DE JUEGO (canvas oculto hasta click) -->
+    <!-- PANTALLA DE JUEGO -->
     <div id="screen-game">
       <div id="canvas-frame">
         <canvas id="unity-canvas" tabindex="-1"></canvas>
@@ -236,7 +228,6 @@
           frame.style.boxShadow = "0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15)";
           frame.style.border = "3px solid rgba(26,143,255,0.7)";
           hints.style.display = "flex";
-
           var reservedH = 160;
           var pad = 24;
           var maxW = window.innerWidth - pad;
@@ -259,10 +250,8 @@
         }
       }
 
-      // Botón JUGAR
       document.getElementById("btn-jugar").addEventListener("click", function() {
         if (!unityReady) return;
-        // Mostrar juego, ocultar menú
         document.getElementById("screen-menu").style.display = "none";
         document.getElementById("screen-game").style.display = "flex";
         applyGameLayout();
@@ -294,12 +283,10 @@
         showBanner: unityShowBanner,
       };
 
-      // Iniciar carga de Unity inmediatamente en segundo plano
       var script = document.createElement("script");
       script.src = buildUrl + "/05.05.loader.js";
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-          // Actualizar barra de precarga en el menú
           var pct = Math.round(progress * 100);
           document.getElementById("preload-bar").style.width = pct + "%";
           document.getElementById("preload-label").textContent = pct < 100
@@ -307,7 +294,6 @@
             : "¡Listo para jugar!";
         }).then((ui) => {
           unityReady = true;
-          // Habilitar botón JUGAR
           var btn = document.getElementById("btn-jugar");
           btn.disabled = false;
           btn.innerHTML = "▶ &nbsp;¡JUGAR!";
