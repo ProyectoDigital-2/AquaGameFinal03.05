@@ -166,7 +166,7 @@
           desktopContainer.style.display = "none";
           canvas = document.getElementById("unity-canvas");
           // Tamaño canvas: ancho pantalla - padding del marco
-          var w = Math.min(window.innerWidth - 24, 500);
+          var availH = window.innerHeight - 140; var w = Math.min(window.innerWidth - 24, Math.round(availH * (960/600)), 500);
           var h = Math.round(w * (600 / 960));
           canvas.style.width = w + "px";
           canvas.style.height = h + "px";
