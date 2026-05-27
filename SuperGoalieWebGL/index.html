@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
@@ -22,10 +23,252 @@
         <div id="unity-fullscreen-button"></div>
         <div id="unity-build-title">Super Goalie Basic</div>
       </div>
+=======
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Super Goalie</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { background: #050e1f; }
+
+    /* ── Ocultar todo lo de Unity ── */
+    #unity-loading-bar,
+    #unity-footer,
+    #unity-build-title { display: none !important; }
+
+    /* ══════════════════════════════════════
+       1. PANTALLA DE CARGA PERSONALIZADA
+    ══════════════════════════════════════ */
+    #screen-loading {
+      position: fixed; inset: 0; z-index: 100;
+      background: #050e1f;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    #screen-loading .ball {
+      font-size: 72px;
+      animation: spin 1.2s linear infinite;
+      filter: drop-shadow(0 0 20px rgba(255,170,0,0.7));
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    #screen-loading h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem; color: #ffaa00;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(255,170,0,0.6);
+    }
+    .bar-wrap {
+      width: 220px; height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg,#ffaa00,#ff8800);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    /* ══════════════════════════════════════
+       2. MENÚ ¡JUGAR! (aparece al terminar carga)
+    ══════════════════════════════════════ */
+    #screen-menu {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(5,14,31,0.85);
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: flex-start;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 24px 24px 40px;
+    }
+    #menu-content {
+      margin: auto 0;
+      padding: 16px 0;
+    }
+    #screen-menu .ball-icon {
+      font-size: 56px;
+      animation: bounce 1s ease infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-10px); }
+    }
+    #screen-menu h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem; color: #ffaa00;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(255,170,0,0.7);
+    }
+    #screen-menu p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem; color: #ccd9ff;
+      text-align: center; line-height: 1.5;
+    }
+    #screen-menu p span { color: #1a8fff; }
+    #btn-jugar {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; letter-spacing: 3px;
+      color: #fff;
+      background: linear-gradient(135deg,#ffaa00,#ff8800);
+      border: 2px solid #1a5aff;
+      border-radius: 50px; padding: 14px 52px;
+      cursor: pointer; width: 100%; max-width: 320px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 24px rgba(255,170,0,0.5);
+      touch-action: manipulation;
+    }
+    #btn-jugar:hover, #btn-jugar:active {
+      transform: scale(1.05);
+      box-shadow: 0 6px 32px rgba(255,170,0,0.7);
+    }
+    #btn-menu {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem; letter-spacing: 2px;
+      color: #1a8fff; background: transparent;
+      border: 2px solid #1a8fff;
+      border-radius: 50px; padding: 10px 36px;
+      cursor: pointer; width: 100%; max-width: 320px;
+      transition: transform 0.15s, background 0.15s;
+      touch-action: manipulation;
+    }
+    #btn-menu:hover, #btn-menu:active {
+      transform: scale(1.04);
+      background: rgba(26,143,255,0.1);
+    }
+
+    /* ══════════════════════════════════════
+       3. CUENTA REGRESIVA
+    ══════════════════════════════════════ */
+    #screen-countdown {
+      width: 100%;
+      align-items: center; justify-content: center;
+    }
+    #countdown-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22vw; color: #fff; line-height: 1;
+      text-shadow: 0 0 40px rgba(255,170,0,0.9),
+                   0 0 80px rgba(26,90,255,0.5);
+    }
+    #countdown-num.pulse {
+      animation: cpulse 0.7s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes cpulse {
+      from { transform: scale(1.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ══════════════════════════════════════
+       4. GIRAR DISPOSITIVO (inicio)
+    ══════════════════════════════════════ */
+    #screen-rotate {
+      position: fixed; inset: 0; z-index: 300;
+      background: #050e1f;
+      display: none !important;
+      flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+    }
+    #screen-rotate .ricon {
+      font-size: 64px;
+    }
+    @keyframes rphone {
+      0%  { transform: rotate(0deg); }
+      40% { transform: rotate(90deg); }
+      60% { transform: rotate(90deg); }
+      100%{ transform: rotate(0deg); }
+    }
+    #screen-rotate h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem; color: #ffaa00;
+      letter-spacing: 3px; text-align: center;
+    }
+    #screen-rotate p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; color: #1a8fff;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════
+       5. GIRAR DISPOSITIVO (al terminar)
+    ══════════════════════════════════════ */
+    #screen-end {
+      position: fixed; inset: 0; z-index: 300;
+      background: #050e1f;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    #screen-end .ricon-back {
+      font-size: 72px;
+    }
+    @keyframes rback {
+      0%  { transform: rotate(90deg); }
+      40% { transform: rotate(0deg); }
+      60% { transform: rotate(0deg); }
+      100%{ transform: rotate(90deg); }
+    }
+    #screen-end h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem; color: #ffaa00;
+      letter-spacing: 3px; text-align: center;
+    }
+    #screen-end p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; color: #1a8fff;
+      text-align: center;
+    }
+    #btn-continuar {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem; letter-spacing: 3px;
+      color: #fff;
+      background: linear-gradient(135deg,#ffaa00,#ff8800);
+      border: 2px solid #1a5aff;
+      border-radius: 50px; padding: 14px 52px;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(255,170,0,0.5);
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Carga -->
+  <div id="screen-loading">
+    <div class="ball">⚽</div>
+    <h2>CARGANDO...</h2>
+    <div class="bar-wrap"><div class="bar-fill" id="bar-fill"></div></div>
+  </div>
+
+  <!-- 2. Menú Jugar + Cuenta regresiva -->
+  <div id="screen-menu">
+    <!-- Contenido del menú -->
+    <div id="menu-content" style="display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:400px;">
+      <div class="ball-icon">⚽</div>
+      <h1>¡A PATEAR!</h1>
+      <p><span>Pulsa en la pantalla</span> donde quieras colocar el tiro.<br>¡Apunta bien y marca gol!</p>
+      <button id="btn-jugar">¡JUGAR!</button>
+      <button id="btn-menu">← VOLVER AL MENÚ</button>
+    </div>
+    <!-- Cuenta regresiva (oculta hasta dar click JUGAR) -->
+    <div id="screen-countdown" style="display:none;flex-direction:column;align-items:center;justify-content:center;">
+      <div id="countdown-num">3</div>
+>>>>>>> 4a8e22a649fe478ae67afee52977583a20c76789
     </div>
     <script>
       var canvas = document.querySelector("#unity-canvas");
 
+<<<<<<< HEAD
       // Shows a temporary message banner/ribbon for a few seconds, or
       // a permanent error message on top of the canvas if type=='error'.
       // If type=='warning', a yellow highlight color is used.
@@ -86,10 +329,176 @@
       // existing user projects that might rely on the earlier manual
       // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
       // expected to change.
+=======
+  <!-- 4. Aviso de orientación opcional -->
+  <div id="screen-rotate">
+    <div class="ricon">📱</div>
+    <h2>ORIENTACIÓN LIBRE</h2>
+    <p>Puedes jugar vertical u horizontal</p>
+  </div>
+
+  <!-- 5. Girar al terminar -->
+  <div id="screen-end">
+    <div class="ricon-back">📱</div>
+    <h2>¡LISTO!</h2>
+    <p>Presiona continuar para volver</p>
+    <button id="btn-continuar">CONTINUAR</button>
+  </div>
+
+  <!-- Unity -->
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="unity-warning"></div>
+    <div id="unity-footer">
+      <div id="unity-logo-title-footer"></div>
+      <div id="unity-fullscreen-button"></div>
+      <div id="unity-build-title">Super Goalie Basic</div>
+    </div>
+  </div>
+
+  <script>
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    var isAndroid = /Android/i.test(navigator.userAgent);
+    var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    var unityInstance = null;
+    var unityLoaded = false;
+    var juegoActivo = false; // true cuando el juego está corriendo
+
+    // ── Pantallas ────────────────────────────────────────────────
+    function show(id) { document.getElementById(id).style.display = 'flex'; }
+    function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+    // ── Orientación ──────────────────────────────────────────────
+    function checkOrientacion() {
+      hide('screen-rotate');
+      if (!juegoActivo) show('screen-menu');
+    }
+
+    window.addEventListener('orientationchange', function() {
+      setTimeout(checkOrientacion, 150);
+    });
+    window.addEventListener('resize', checkOrientacion);
+
+    // ── Fullscreen ───────────────────────────────────────────────
+    function entrarFullscreen() {
+      if (isIOS) {
+        // iOS/iPad Safari NO soporta requestFullscreen — solo ocultar barra
+        try { window.scrollTo(0, 1); } catch(e) {}
+      } else if (isAndroid) {
+        // Android: no forzar orientación, solo ocultar barra si se puede
+        try { window.scrollTo(0, 1); } catch(e) {}
+      } else {
+        // PC: fullscreen real de Unity con try/catch por seguridad
+        try {
+          if (unityInstance) unityInstance.SetFullscreen(1);
+        } catch(e) {
+          console.warn('Fullscreen no disponible:', e);
+        }
+      }
+    }
+
+    function salirFullscreen() {
+      if (document.exitFullscreen) document.exitFullscreen().catch(function(){});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    // Detectar ESC (salida de fullscreen) y mostrar menú de nuevo
+    document.addEventListener('fullscreenchange', function() {
+      if (!document.fullscreenElement && unityLoaded) resetearMenu();
+    });
+    document.addEventListener('webkitfullscreenchange', function() {
+      if (!document.webkitFullscreenElement && unityLoaded) resetearMenu();
+    });
+
+    // ── Menú al terminar ─────────────────────────────────────────
+    function irAlMenu() {
+      salirFullscreen();
+      if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+      window.top.location.href = '../index.html';
+    }
+
+    function mostrarFinDeJuego() {
+      juegoActivo = false;
+      salirFullscreen();
+      if (!isMobile) { irAlMenu(); return; }
+      show('screen-end');
+    }
+
+    // ── Callbacks de Unity ───────────────────────────────────────
+    function NotifyGoalScored()        { mostrarFinDeJuego(); }
+    function NotifyGoalMissed()        { mostrarFinDeJuego(); }
+    function NotifyPracticaTerminada() { mostrarFinDeJuego(); }
+
+    // ── Al regresar al menú desde el juego (sin salir de la página) ──
+    // Resetear menú para que JUGAR funcione de nuevo
+    function resetearMenu() {
+      juegoActivo = false;
+      document.getElementById('menu-content').style.display = 'flex';
+      document.getElementById('screen-countdown').style.display = 'none';
+      document.getElementById('countdown-num').textContent = '3';
+      checkOrientacion();
+    }
+
+    // ── Cuenta regresiva ─────────────────────────────────────────
+    function iniciarCuentaYJugar() {
+      var el = document.getElementById('countdown-num');
+      var n = 3;
+      el.textContent = n;
+      pulsar(el);
+
+      var iv = setInterval(function() {
+        n--;
+        if (n > 0) {
+          el.textContent = n;
+          pulsar(el);
+        } else {
+          clearInterval(iv);
+          el.textContent = '¡YA!';
+          pulsar(el);
+          setTimeout(function() {
+            // Ocultar menú y entrar al juego
+            hide('screen-menu');
+            hide('screen-countdown');
+            document.getElementById('countdown-num').textContent = '3'; // reset
+            juegoActivo = true;
+            entrarFullscreen();
+          }, 1200);
+        }
+      }, 1000);
+    }
+
+    function pulsar(el) {
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+    }
+
+    // ── Botón JUGAR ──────────────────────────────────────────────
+    document.getElementById('btn-jugar').addEventListener('click', function() {
+      // Ocultar botones del menú, mostrar cuenta regresiva en su lugar
+      document.getElementById('menu-content').style.display = 'none';
+      document.getElementById('screen-countdown').style.display = 'flex';
+      
+      iniciarCuentaYJugar();
+    });
+
+    // ── Botón VOLVER AL MENÚ ─────────────────────────────────────
+    document.getElementById('btn-menu').addEventListener('click', irAlMenu);
+
+    // ── Botón CONTINUAR (fin de juego) ───────────────────────────
+    document.getElementById('btn-continuar').addEventListener('click', irAlMenu);
+>>>>>>> 4a8e22a649fe478ae67afee52977583a20c76789
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile device style: fill the whole browser client area with the game canvas:
 
+<<<<<<< HEAD
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
@@ -106,8 +515,20 @@
         // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
         canvas.style.width = "960px";
         canvas.style.height = "600px";
+=======
+    function unityShowBanner(msg, type) {
+      var w = document.querySelector('#unity-warning');
+      var d = document.createElement('div');
+      d.innerHTML = msg;
+      w.appendChild(d);
+      if (type === 'error') d.style = 'background:red;padding:10px;';
+      else if (type === 'warning') {
+        d.style = 'background:yellow;padding:10px;';
+        setTimeout(function() { w.removeChild(d); }, 5000);
+>>>>>>> 4a8e22a649fe478ae67afee52977583a20c76789
       }
 
+<<<<<<< HEAD
       document.querySelector("#unity-loading-bar").style.display = "block";
 
       var script = document.createElement("script");
@@ -127,6 +548,106 @@
             };
 
       document.body.appendChild(script);
+=======
+    // ── Bloquear requestFullscreen en iOS/iPad ──────────────────
+    // Unity lo llama internamente y Safari lo rechaza con error
+    if (isIOS) {
+      var origRequest = HTMLElement.prototype.requestFullscreen;
+      HTMLElement.prototype.requestFullscreen = function() {
+        // Silenciar el error — no hacer nada en iOS
+        return Promise.resolve();
+      };
+      if (HTMLElement.prototype.webkitRequestFullscreen) {
+        HTMLElement.prototype.webkitRequestFullscreen = function() {};
+      }
+    }
+
+    var buildUrl  = 'Build';
+    var loaderUrl = buildUrl + '/05.05.loader.js';
+    var config = {
+      arguments: [],
+      dataUrl:            buildUrl + '/05.05.data',
+      frameworkUrl:       buildUrl + '/05.05.framework.js',
+      codeUrl:            buildUrl + '/05.05.wasm',
+      streamingAssetsUrl: 'StreamingAssets',
+      companyName:   'DefaultCompany',
+      productName:   'Super Goalie Basic',
+      productVersion: '0.1',
+      showBanner: unityShowBanner,
+    };
+
+    if (isMobile) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width,height=device-height,initial-scale=1.0,user-scalable=no,shrink-to-fit=yes';
+      document.head.appendChild(meta);
+      document.querySelector('#unity-container').className = 'unity-mobile';
+      canvas.className = 'unity-mobile';
+    } else {
+      canvas.style.width  = '960px';
+      canvas.style.height = '600px';
+    }
+    // Ocultar canvas hasta que Unity cargue completamente
+    canvas.style.visibility = 'hidden';
+
+    var script = document.createElement('script');
+    script.src = loaderUrl;
+    script.onload = function() {
+      // Progreso simulado suave mientras Unity inicializa
+      var fakeP = 0;
+      var fakeIv = setInterval(function() {
+        if (fakeP < 80) { fakeP += 0.4; document.getElementById('bar-fill').style.width = fakeP + '%'; }
+        else { clearInterval(fakeIv); }
+      }, 80);
+
+      createUnityInstance(canvas, config, function(progress) {
+        clearInterval(fakeIv);
+        document.getElementById('bar-fill').style.width = (80 + Math.round(progress * 20)) + '%';
+      }).then(function(ui) {
+        clearInterval(fakeIv);
+        unityInstance = ui;
+        unityLoaded = true;
+
+        // Desbloquear audio iOS
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          var ctx = new AudioCtx();
+          function unlock() {
+            if (ctx.state === 'suspended') ctx.resume();
+            var b = ctx.createBuffer(1,1,22050);
+            var s = ctx.createBufferSource();
+            s.buffer = b; s.connect(ctx.destination); s.start(0);
+            document.removeEventListener('touchstart', unlock);
+            document.removeEventListener('click', unlock);
+          }
+          document.addEventListener('touchstart', unlock, {once:true});
+          document.addEventListener('click', unlock, {once:true});
+        }
+
+        // Unity cargó — mostrar listo y hacer fade inmediato
+        canvas.style.visibility = 'visible';
+        var loading = document.getElementById('screen-loading');
+        var h2 = loading.querySelector('h2');
+        if (h2) h2.textContent = '¡LISTO!';
+        var bar = document.getElementById('bar-fill');
+        if (bar) bar.style.width = '100%';
+
+        // Fade out rápido — sin pantalla negra
+        setTimeout(function() {
+          loading.style.transition = 'opacity 0.4s';
+          loading.style.opacity = '0';
+          setTimeout(function() {
+            loading.style.display = 'none';
+            checkOrientacion();
+          }, 400);
+        }, 600);
+
+        // Botón fullscreen de Unity
+        document.querySelector('#unity-fullscreen-button').onclick = function() {
+          if (!isAndroid) unityInstance.SetFullscreen(1);
+          else window.scrollTo(0, 1);
+        };
+>>>>>>> 4a8e22a649fe478ae67afee52977583a20c76789
 
     </script>
   </body>
