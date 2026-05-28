@@ -973,10 +973,10 @@ const CODEC_SALT      = 0x5A3F1;
 const CODEC_ALPHABET  = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ"; // sin I ni O
 const CODEC_BASE      = CODEC_ALPHABET.length; // 34
 
-const FB_URL = "https://aquachampions2026-default-rtdb.firebaseio.com";
+const FB_URL = "https://TU-NUEVO-PROYECTO-default-rtdb.firebaseio.com";
 
 function codecDecode(raw) {
-  // raw = "XXXX-XXX"  → { sucId, amount, seq } | null si inválida/checksum fallo
+  // raw = "XXXXXXX"  → { sucId, amount, seq } | null si inválida/checksum fallo
   const clean = raw.replace(/-/g, "").toUpperCase();
   if (clean.length !== 7) return null;
   const body    = clean.slice(0, 6);
@@ -2108,7 +2108,7 @@ async function startMatch(mode) {
     if (!accessMatch || accessMatch.invalid) {
       const errMsg = accessMatch?.invalid === "used"
         ? getUsedCodeMessage(accessMatch.branch, accessMatch.entry)
-        : "Clave inválida. Verifica que la escribiste correctamente (formato XXXX-XXX).";
+        : "Clave inválida. Verifica que la escribiste correctamente (7 caracteres, sin guión).";
       renderPromoSummary(errMsg);
       return;
     }
@@ -3372,7 +3372,7 @@ startMenuBtn.addEventListener("click", async () => {
   if (!accessMatch || accessMatch.invalid) {
     const errMsg = accessMatch?.invalid === "used"
       ? getUsedCodeMessage(accessMatch.branch, accessMatch.entry)
-      : "Clave inválida. Verifica que la escribiste correctamente (formato XXXX-XXX).";
+      : "Clave inválida. Verifica que la escribiste correctamente (7 caracteres, sin guión).";
     renderPromoSummary(errMsg);
     return;
   }
@@ -3799,7 +3799,7 @@ function rebuildKey(sucId, amount, seq) {
   const body = chars.join("");
   const chk  = [...body].reduce((s,c,i) => s+(i+1)*CODEC_ALPHABET.indexOf(c), 0) % CODEC_BASE;
   const raw  = body + CODEC_ALPHABET[chk];
-  return raw.slice(0,4) + "-" + raw.slice(4);
+  return raw;
 }
 
 // ── Excel download (SheetJS via CDN) ─────────────────────────────────────────
