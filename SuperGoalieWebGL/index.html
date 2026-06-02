@@ -8,96 +8,45 @@
     <link rel="stylesheet" href="TemplateData/style.css">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-
       body {
         background: radial-gradient(ellipse at center, #0a1628 0%, #000 100%);
         width: 100%; height: 100vh;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
       }
-
-      /* ── MENÚ ─────────────────────────────────────── */
       #screen-menu {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
         width: 100%; height: 100%;
-        gap: 18px;
-        padding: 24px;
-        overflow-y: auto;
+        gap: 18px; padding: 24px; overflow-y: auto;
       }
-
       .ball-icon { font-size: 3rem; animation: ballbounce 1.8s ease-in-out infinite; }
-      @keyframes ballbounce {
-        0%,100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-      }
-
+      @keyframes ballbounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
       #screen-menu h1 {
         font-family: 'Arial Black', Arial, sans-serif;
-        font-size: 2rem; font-weight: 900;
-        color: #fff;
+        font-size: 2rem; font-weight: 900; color: #fff;
         text-shadow: 0 0 30px rgba(26,143,255,0.8), 0 2px 4px rgba(0,0,0,0.5);
         letter-spacing: 2px;
       }
-
-      /* Barra de precarga */
-      #preload-bar-wrap {
-        width: 100%; max-width: 300px;
-        height: 4px; background: rgba(255,255,255,0.1);
-        border-radius: 4px; overflow: hidden;
-      }
-      #preload-bar {
-        height: 100%; width: 0%;
-        background: linear-gradient(90deg, #1a8fff, #00c9ff);
-        border-radius: 4px;
-        transition: width 0.3s ease;
-      }
-      #preload-label {
-        font-family: Arial, sans-serif;
-        font-size: 0.72rem; color: rgba(255,255,255,0.4);
-        text-align: center;
-      }
-
-      /* Botones */
+      #preload-bar-wrap { width: 100%; max-width: 300px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+      #preload-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #1a8fff, #00c9ff); border-radius: 4px; transition: width 0.3s ease; }
+      #preload-label { font-family: Arial, sans-serif; font-size: 0.72rem; color: rgba(255,255,255,0.4); text-align: center; }
       #btn-jugar {
-        width: 100%; max-width: 300px;
-        padding: 16px;
+        width: 100%; max-width: 300px; padding: 16px;
         background: linear-gradient(135deg, #ff8c00, #ff5500);
-        border: none; border-radius: 14px;
-        color: #fff; font-family: 'Arial Black', Arial, sans-serif;
+        border: none; border-radius: 14px; color: #fff;
+        font-family: 'Arial Black', Arial, sans-serif;
         font-size: 1.1rem; font-weight: 900; letter-spacing: 2px;
         cursor: pointer;
         box-shadow: 0 0 20px rgba(255,120,0,0.5), 0 4px 15px rgba(0,0,0,0.3);
         transition: transform 0.1s, box-shadow 0.1s;
       }
       #btn-jugar:active { transform: scale(0.97); box-shadow: 0 0 10px rgba(255,120,0,0.3); }
-      #btn-jugar:disabled {
-        background: linear-gradient(135deg, #555, #333);
-        box-shadow: none; cursor: default;
-      }
-
-      /* Hint cards */
-      .hint-card {
-        width: 100%; max-width: 300px;
-        display: flex; align-items: center;
-        gap: 10px; padding: 9px 14px;
-        border-radius: 12px;
-      }
-      .hint-card.kick {
-        background: linear-gradient(135deg, rgba(255,180,0,0.18), rgba(255,100,0,0.1));
-        border: 1px solid rgba(255,180,0,0.45);
-        box-shadow: 0 0 10px rgba(255,150,0,0.2);
-      }
-      .hint-card.rotate {
-        background: linear-gradient(135deg, rgba(26,143,255,0.18), rgba(0,200,255,0.1));
-        border: 1px solid rgba(26,143,255,0.45);
-        box-shadow: 0 0 10px rgba(26,143,255,0.2);
-      }
+      #btn-jugar:disabled { background: linear-gradient(135deg, #555, #333); box-shadow: none; cursor: default; }
+      .hint-card { width: 100%; max-width: 300px; display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 12px; }
+      .hint-card.kick { background: linear-gradient(135deg, rgba(255,180,0,0.18), rgba(255,100,0,0.1)); border: 1px solid rgba(255,180,0,0.45); box-shadow: 0 0 10px rgba(255,150,0,0.2); }
+      .hint-card.rotate { background: linear-gradient(135deg, rgba(26,143,255,0.18), rgba(0,200,255,0.1)); border: 1px solid rgba(26,143,255,0.45); box-shadow: 0 0 10px rgba(26,143,255,0.2); }
       .hint-emoji { font-size: 1.3rem; flex-shrink: 0; }
       .hint-text { font-family: Arial, sans-serif; font-size: 0.76rem; line-height: 1.3; }
       .hint-card.kick .hint-text { color: #ffd080; }
@@ -105,38 +54,11 @@
       .hint-text strong { display: block; font-size: 0.82rem; margin-bottom: 1px; }
       .hint-card.kick .hint-text strong { color: #ffb300; }
       .hint-card.rotate .hint-text strong { color: #1a8fff; }
-
-      /* ── JUEGO ─────────────────────────────────────── */
-      #screen-game {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%; height: 100%;
-      }
-
-      #canvas-frame {
-        border: 3px solid rgba(26,143,255,0.7);
-        border-radius: 12px;
-        box-shadow: 0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15);
-        overflow: hidden;
-        flex-shrink: 0;
-      }
+      #screen-game { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+      #canvas-frame { border: 3px solid rgba(26,143,255,0.7); border-radius: 12px; box-shadow: 0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15); overflow: hidden; flex-shrink: 0; }
       #unity-canvas { background: #000; display: block; }
-
-      #game-hints {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        margin-top: 8px;
-      }
-
-      #unity-loading-bar {
-        position: fixed; top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        display: none; z-index: 10;
-      }
+      #game-hints { display: none; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }
+      #unity-loading-bar { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; }
       #unity-logo { width: 154px; height: 130px; background: url('TemplateData/unity-logo-dark.png') no-repeat center; }
       #unity-progress-bar-empty { width: 141px; height: 18px; margin-top: 10px; background: url('TemplateData/progress-bar-empty-dark.png') no-repeat center; }
       #unity-progress-bar-full { width: 0%; height: 18px; background: url('TemplateData/progress-bar-full-dark.png') no-repeat center; }
@@ -145,68 +67,66 @@
     </style>
   </head>
   <body>
-
-    <!-- MENÚ PRINCIPAL -->
     <div id="screen-menu">
       <div class="ball-icon">⚽</div>
       <h1>¡A PATEAR!</h1>
-
-      <div id="preload-bar-wrap">
-        <div id="preload-bar"></div>
-      </div>
+      <div id="preload-bar-wrap"><div id="preload-bar"></div></div>
       <div id="preload-label">Preparando el juego...</div>
-
       <div class="hint-card kick">
         <div class="hint-emoji">⚽</div>
-        <div class="hint-text">
-          <strong>¡Lanza el penal!</strong>
-          Toca donde quieres colocar el tiro
-        </div>
+        <div class="hint-text"><strong>¡Lanza el penal!</strong>Toca donde quieres colocar el tiro</div>
       </div>
       <div class="hint-card rotate">
         <div class="hint-emoji">🔄</div>
-        <div class="hint-text">
-          <strong>Mejor vista</strong>
-          Gira tu dispositivo en horizontal
-        </div>
+        <div class="hint-text"><strong>Mejor vista</strong>Gira tu dispositivo en horizontal</div>
       </div>
-
       <button id="btn-jugar" disabled>⏳ &nbsp;CARGANDO...</button>
     </div>
-
-    <!-- PANTALLA DE JUEGO -->
     <div id="screen-game">
-      <div id="canvas-frame">
-        <canvas id="unity-canvas" tabindex="-1"></canvas>
-      </div>
+      <div id="canvas-frame"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
       <div id="game-hints">
-        <div class="hint-card kick">
-          <div class="hint-emoji">⚽</div>
-          <div class="hint-text">
-            <strong>¡Lanza el penal!</strong>
-            Toca donde quieres colocar el tiro
-          </div>
-        </div>
-        <div class="hint-card rotate">
-          <div class="hint-emoji">🔄</div>
-          <div class="hint-text">
-            <strong>Mejor vista</strong>
-            Gira tu dispositivo en horizontal
-          </div>
-        </div>
+        <div class="hint-card kick"><div class="hint-emoji">⚽</div><div class="hint-text"><strong>¡Lanza el penal!</strong>Toca donde quieres colocar el tiro</div></div>
+        <div class="hint-card rotate"><div class="hint-emoji">🔄</div><div class="hint-text"><strong>Mejor vista</strong>Gira tu dispositivo en horizontal</div></div>
       </div>
     </div>
-
     <div id="unity-loading-bar">
       <div id="unity-logo"></div>
-      <div id="unity-progress-bar-empty">
-        <div id="unity-progress-bar-full"></div>
-      </div>
+      <div id="unity-progress-bar-empty"><div id="unity-progress-bar-full"></div></div>
     </div>
     <div id="unity-warning"></div>
     <div id="unity-footer"></div>
 
     <script>
+      // ── Decodificar token seguro ──────────────────────────────────────────────
+      (function() {
+        var p = new URLSearchParams(window.location.search);
+        var t = p.get("t");
+        if (!t) return; // modo legacy: ya tiene los params directos
+
+        try {
+          var xorKey = [0x4B, 0x39, 0xA7, 0x2C, 0xF1, 0x58, 0x3E, 0x9D];
+          var b64 = t.replace(/-/g, "+").replace(/_/g, "/");
+          var bin = atob(b64);
+          var chars = [];
+          for (var i = 0; i < bin.length; i++) {
+            chars.push(String.fromCharCode(bin.charCodeAt(i) ^ xorKey[i % xorKey.length]));
+          }
+          var data = JSON.parse(chars.join(""));
+          // Inyectar como si hubieran llegado por URL, sin modificar la barra
+          window._aquaParams = data;
+        } catch(e) {
+          console.warn("Token inválido", e);
+        }
+      })();
+
+      // Helper para leer params (token o URL directa)
+      function getParam(name) {
+        if (window._aquaParams && window._aquaParams[name] !== undefined) {
+          return String(window._aquaParams[name]);
+        }
+        return new URLSearchParams(window.location.search).get(name);
+      }
+
       var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       var canvas = document.getElementById("unity-canvas");
       var unityReady = false;
@@ -238,35 +158,25 @@
         var frame = document.getElementById("canvas-frame");
         var hints = document.getElementById("game-hints");
         var portrait = isMobile && window.innerHeight > window.innerWidth;
-
         if (portrait) {
           frame.style.borderRadius = "12px";
           frame.style.boxShadow = "0 0 24px rgba(26,143,255,0.5), 0 0 60px rgba(26,143,255,0.15)";
           frame.style.border = "3px solid rgba(26,143,255,0.7)";
           hints.style.display = "flex";
-          var reservedH = 160;
-          var pad = 24;
+          var reservedH = 160; var pad = 24;
           var maxW = window.innerWidth - pad;
           var maxH = window.innerHeight - reservedH;
           var w = Math.min(maxW, Math.round(maxH * (960/600)));
           var h = Math.round(w * (600/960));
-          canvas.style.width = w + "px";
-          canvas.style.height = h + "px";
+          canvas.style.width = w + "px"; canvas.style.height = h + "px";
           hints.style.width = w + "px";
         } else {
-          frame.style.borderRadius = "0";
-          frame.style.boxShadow = "none";
-          frame.style.border = "none";
+          frame.style.borderRadius = "0"; frame.style.boxShadow = "none"; frame.style.border = "none";
           hints.style.display = "none";
-          canvas.style.width = window.innerWidth + "px";
-          canvas.style.height = window.innerHeight + "px";
-          // Fullscreen en móvil horizontal y desktop
+          canvas.style.width = window.innerWidth + "px"; canvas.style.height = window.innerHeight + "px";
           var fsEl = document.documentElement;
-          if (fsEl.requestFullscreen && !document.fullscreenElement) {
-            fsEl.requestFullscreen().catch(function(){});
-          } else if (fsEl.webkitRequestFullscreen && !document.webkitFullscreenElement) {
-            fsEl.webkitRequestFullscreen();
-          }
+          if (fsEl.requestFullscreen && !document.fullscreenElement) fsEl.requestFullscreen().catch(function(){});
+          else if (fsEl.webkitRequestFullscreen && !document.webkitFullscreenElement) fsEl.webkitRequestFullscreen();
         }
       }
 
@@ -284,15 +194,21 @@
         div.innerHTML = msg;
         wb.appendChild(div);
         if (type == 'error') div.style = 'background:red;padding:10px;';
-        else {
-          if (type == 'warning') div.style = 'background:yellow;padding:10px;';
-          setTimeout(function() { wb.removeChild(div); }, 5000);
-        }
+        else { if (type == 'warning') div.style = 'background:yellow;padding:10px;'; setTimeout(function() { wb.removeChild(div); }, 5000); }
       }
 
       var buildUrl = "Build";
       var config = {
-        arguments: [],
+        arguments: [
+          getParam("key")    || "",
+          getParam("sucId")  || "",
+          getParam("amount") || "",
+          getParam("seq")    || "",
+          getParam("branch") || "",
+          getParam("practica") || "0",
+          getParam("tirosMax") || "5",
+          getParam("resultado") || ""
+        ],
         dataUrl:      buildUrl + "/05.05.data.unityweb",
         frameworkUrl: buildUrl + "/05.05.framework.js.unityweb",
         codeUrl:      buildUrl + "/05.05.wasm.unityweb",
