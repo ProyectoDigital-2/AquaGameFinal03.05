@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="preload" href="SuperGoalieWebGL/Build/05.05.loader.js" as="script">
-<link rel="preload" href="SuperGoalieWebGL/Build/05.05.framework.js" as="script">
-<link rel="preload" href="SuperGoalieWebGL/Build/05.05.wasm" as="fetch" type="application/wasm" crossorigin>
-<link rel="preload" href="SuperGoalieWebGL/Build/05.05.data" as="fetch" crossorigin>
+<link rel="preload" href="AquaChampions/Build/05.05.loader.js" as="script">
+<link rel="preload" href="AquaChampions/Build/05.05.framework.js" as="script">
+<link rel="preload" href="AquaChampions/Build/05.05.wasm" as="fetch" type="application/wasm" crossorigin>
+<link rel="preload" href="AquaChampions/Build/05.05.data" as="fetch" crossorigin>
 
 <style>
 body {
@@ -3763,10 +3763,10 @@ function warmUnityBuild() {
   unityWarmupStarted = true;
 
   const unityFiles = [
-    "SuperGoalieWebGL/Build/05.05.loader.js",
-    "SuperGoalieWebGL/Build/05.05.framework.js",
-    "SuperGoalieWebGL/Build/05.05.wasm",
-    "SuperGoalieWebGL/Build/05.05.data",
+    "AquaChampions/Build/05.05.loader.js",
+    "AquaChampions/Build/05.05.framework.js",
+    "AquaChampions/Build/05.05.wasm",
+    "AquaChampions/Build/05.05.data",
   ];
 
   unityFiles.forEach(function(url) {
@@ -3778,9 +3778,29 @@ window.addEventListener("load", function() {
   setTimeout(warmUnityBuild, 800);
 });
 
+// ── Token seguro: oculta key/sucId/amount/seq/branch de la URL ───────────────
+function encodeToken(data) {
+  const json  = JSON.stringify(data);
+  const xorKey = [0x4B, 0x39, 0xA7, 0x2C, 0xF1, 0x58, 0x3E, 0x9D];
+  const bytes = [];
+  for (let i = 0; i < json.length; i++) {
+    bytes.push(json.charCodeAt(i) ^ xorKey[i % xorKey.length]);
+  }
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+
 function buildUnityUrl(params) {
   params.set("_v", "orientation-note-1");
-  return "SuperGoalieWebGL/index.html?" + params.toString();
+  return "AquaChampions/index.html?" + params.toString();
+}
+
+function buildUnityUrlSecure(data, extra) {
+  const t = encodeToken(data);
+  const p = new URLSearchParams({ t });
+  if (extra) Object.entries(extra).forEach(([k,v]) => p.set(k, v));
+  p.set("_v", "orientation-note-1");
+  return "AquaChampions/index.html?" + p.toString();
 }
 
 function prepareUnityFrame(params) {
@@ -3806,16 +3826,7 @@ function iniciarPractica() {
     return;
   }
 
-  const key    = rebuildKey(decoded.sucId, decoded.amount, decoded.seq);
-  const params = new URLSearchParams({
-    key:      key,
-    sucId:    decoded.sucId,
-    amount:   decoded.amount,
-    seq:      decoded.seq,
-    branch:   branch?.name || "",
-    practica: "1",
-    tirosMax: "5",
-  });
+  const key = rebuildKey(decoded.sucId, decoded.amount, decoded.seq);
 
   // Guardar estado antes de salir
   sessionStorage.setItem("aquaPromoState", JSON.stringify({
@@ -3827,9 +3838,12 @@ function iniciarPractica() {
     branchAccessCode:   state.branchAccessCode,
   }));
 
-  setTimeout(() => {
-    window.location.href = "SuperGoalieWebGL/index.html?" + params.toString();
-  }, 300);
+  const url = buildUnityUrlSecure(
+    { key, sucId: decoded.sucId, amount: decoded.amount, seq: decoded.seq, branch: branch?.name || "" },
+    { practica: "1", tirosMax: "5" }
+  );
+
+  setTimeout(() => { window.location.href = url; }, 300);
 }
 
 function _actualizarHudPractica() {
@@ -3909,13 +3923,12 @@ function irSuperGoalie() {  const decoded = state.promoAccessDecoded;
     if (pgBranch) pgBranch.textContent = branch?.name?.replace("Sucursal ","") || "—";
     if (pgKey)    pgKey.textContent    = key;
 
-    prepareUnityFrame(new URLSearchParams({
-      key:    key,
-      sucId:  decoded.sucId,
-      amount: decoded.amount,
-      seq:    decoded.seq,
-      branch: branch?.name || "",
-    }));
+    const url = buildUnityUrlSecure({
+      key, sucId: decoded.sucId, amount: decoded.amount,
+      seq: decoded.seq, branch: branch?.name || "",
+    });
+    const frame = document.getElementById("unityFrame");
+    if (frame && unityFrameSrc !== url) { unityFrameSrc = url; frame.src = url; }
   }
 
   document.getElementById("pregameModal").classList.remove("hidden");
@@ -3933,13 +3946,6 @@ function launchUnity() {
     return;
   }
   const key    = rebuildKey(decoded.sucId, decoded.amount, decoded.seq);
-  const params = new URLSearchParams({
-    key:    key,
-    sucId:  decoded.sucId,
-    amount: decoded.amount,
-    seq:    decoded.seq,
-    branch: branch?.name || "",
-  });
 
   // Guardar estado antes de salir para recuperarlo al regresar
   sessionStorage.setItem("aquaPromoState", JSON.stringify({
@@ -3951,7 +3957,13 @@ function launchUnity() {
     branchAccessCode:  state.branchAccessCode,
   }));
 
-  prepareUnityFrame(params);
+  const url = buildUnityUrlSecure({
+    key, sucId: decoded.sucId, amount: decoded.amount,
+    seq: decoded.seq, branch: branch?.name || "",
+  });
+  const frame = document.getElementById("unityFrame");
+  if (frame && unityFrameSrc !== url) { unityFrameSrc = url; frame.src = url; }
+
   document.getElementById("pregameModal").classList.add("hidden");
   document.getElementById("unityFrameOverlay").classList.remove("hidden");
 }
