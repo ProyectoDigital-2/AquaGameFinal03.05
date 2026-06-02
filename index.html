@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="preload" href="AquaChampions/Build/05.05.loader.js" as="script">
-<link rel="preload" href="AquaChampions/Build/05.05.framework.js" as="script">
-<link rel="preload" href="AquaChampions/Build/05.05.wasm" as="fetch" type="application/wasm" crossorigin>
-<link rel="preload" href="AquaChampions/Build/05.05.data" as="fetch" crossorigin>
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.loader.js" as="script">
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.framework.js" as="script">
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.wasm" as="fetch" type="application/wasm" crossorigin>
+<link rel="preload" href="SuperGoalieWebGL/Build/05.05.data" as="fetch" crossorigin>
 
 <style>
 body {
@@ -3763,10 +3763,10 @@ function warmUnityBuild() {
   unityWarmupStarted = true;
 
   const unityFiles = [
-    "AquaChampions/Build/05.05.loader.js",
-    "AquaChampions/Build/05.05.framework.js",
-    "AquaChampions/Build/05.05.wasm",
-    "AquaChampions/Build/05.05.data",
+    "SuperGoalieWebGL/Build/05.05.loader.js",
+    "SuperGoalieWebGL/Build/05.05.framework.js",
+    "SuperGoalieWebGL/Build/05.05.wasm",
+    "SuperGoalieWebGL/Build/05.05.data",
   ];
 
   unityFiles.forEach(function(url) {
@@ -3792,7 +3792,7 @@ function encodeToken(data) {
 
 function buildUnityUrl(params) {
   params.set("_v", "orientation-note-1");
-  return "AquaChampions/index.html?" + params.toString();
+  return "SuperGoalieWebGL/index.html?" + params.toString();
 }
 
 function buildUnityUrlSecure(data, extra) {
@@ -3800,7 +3800,7 @@ function buildUnityUrlSecure(data, extra) {
   const p = new URLSearchParams({ t });
   if (extra) Object.entries(extra).forEach(([k,v]) => p.set(k, v));
   p.set("_v", "orientation-note-1");
-  return "AquaChampions/index.html?" + p.toString();
+  return "SuperGoalieWebGL/index.html?" + p.toString();
 }
 
 function prepareUnityFrame(params) {
