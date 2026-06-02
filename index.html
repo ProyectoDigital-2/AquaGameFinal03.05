@@ -739,7 +739,7 @@ button{
 </button>
 
 
-        <button class="ghost small" id="testDlBtn" onclick="downloadAdminExcel()" style="display:none">⬇ Descargar BD (prueba)</button>
+
       </div>
     </div>
   </div>
@@ -780,35 +780,7 @@ button{
     </div>
   </div>
 
-  <!-- Admin Panel -->
-  <div id="adminPanel" class="hidden">
-    <div class="admin-header">
-      <h2>Panel Operativo</h2>
-      <button class="admin-close-btn" id="adminCloseBtn">✕</button>
-    </div>
-    <div id="adminLoginWrap" class="admin-login-wrap">
-      <div class="title" style="font-size:20px;color:#0A92D3">Acceso Restringido</div>
-      <div class="sub" style="text-align:center;font-size:13px">Ingresa la clave de administrador</div>
-      <input type="password" id="adminKeyInput" placeholder="Clave admin">
-      <div class="admin-err hidden" id="adminErr">Clave incorrecta</div>
-      <button class="primary" id="adminLoginBtn">Entrar</button>
-    </div>
-    <div id="adminContent" class="hidden">
-      <div class="admin-stats" id="adminStats"></div>
-      <div class="section-title" style="margin-bottom:10px">Claves usadas</div>
-      <div class="admin-table-wrap">
-        <table class="admin-table" id="adminTable">
-          <thead><tr>
-            <th>Clave</th><th>Sucursal</th><th>Monto</th><th>Resultado</th><th>Premio</th><th>Ticket</th>
-          </tr></thead>
-          <tbody id="adminTableBody"></tbody>
-        </table>
-      </div>
-      <button class="admin-dl-btn" id="adminDlBtn">⬇ Descargar BD completa (.xlsx)</button>
-      <button class="admin-dl-btn" id="adminSyncInvBtn" style="background:linear-gradient(90deg,#1a7a1a,#145214);margin-top:8px" onclick="syncInventarioExcel()">🔄 Subir inventario Excel a Firebase</button>
-      <button class="admin-dl-btn" id="adminResetUsadasBtn" style="background:linear-gradient(90deg,#8B0000,#600000);margin-top:8px" onclick="resetUsadas()">🗑 Reiniciar claves usadas</button>
-    </div>
-  </div>
+
 
 <!-- Modal: Elegir modo -->
 <div id="modoModal" class="hidden" style="position:fixed;inset:0;z-index:9998;background:rgba(0,10,28,.96);display:flex;align-items:center;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 0 32px;">
@@ -3444,14 +3416,6 @@ document.addEventListener("click", (e) => {
 });
 
 branchAccessInputEl.addEventListener("input", (e) => {
-  const val = e.target.value.trim();
-  if (val === ADMIN_KEY) {
-    branchAccessInputEl.value = "";
-    state.branchAccessCode = "";
-    startMenuBtn.disabled = true;
-    openAdminPanel();
-    return;
-  }
   state.branchAccessCode = e.target.value;
   updateMenuFlow();
 });
@@ -3543,7 +3507,7 @@ requestAnimationFrame(tick);
 // ═══════════════════════════════════════════════════════════════════
 // PRIZE MODAL — show image + let user pick prize variant
 // ═══════════════════════════════════════════════════════════════════
-const ADMIN_KEY = "Aquagol-2026";
+
 
 // Prize groups: some keys share the same "family" with choice
 const PRIZE_GROUPS = {
@@ -3621,17 +3585,6 @@ function confirmPrize() {
   document.getElementById("endScreen").classList.remove("hidden");
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ADMIN PANEL
-// ═══════════════════════════════════════════════════════════════════
-function openAdminPanel() {
-  const panel = document.getElementById("adminPanel");
-  panel.classList.remove("hidden");
-  document.getElementById("adminLoginWrap").classList.remove("hidden");
-  document.getElementById("adminContent").classList.add("hidden");
-  document.getElementById("adminErr").classList.add("hidden");
-  document.getElementById("adminKeyInput").value = "";
-}
 
 // ── Detectar regreso desde Unity (práctica o tiro real) ──────────────
 (function () {
@@ -3716,74 +3669,9 @@ function openAdminPanel() {
   }
 })();
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("bgOverlay").style.display = "block";
-  document.getElementById("adminCloseBtn").onclick = () => {
-    document.getElementById("adminPanel").classList.add("hidden");
-  };
-  document.getElementById("adminLoginBtn").onclick = () => {
-    const val = document.getElementById("adminKeyInput").value.trim();
-    if (val === ADMIN_KEY) {
-      document.getElementById("adminLoginWrap").classList.add("hidden");
-      document.getElementById("adminContent").classList.remove("hidden");
-      renderAdminContent();
-    } else {
-      document.getElementById("adminErr").classList.remove("hidden");
-    }
-  };
-  document.getElementById("adminDlBtn").onclick = downloadAdminExcel;
-});
 
-async function renderAdminContent() {
-  // Loading state
-  document.getElementById("adminStats").innerHTML =
-    `<div class="admin-stat-card" style="grid-column:1/-1"><div class="val">...</div><div class="lbl">Cargando desde Firebase</div></div>`;
-  document.getElementById("adminTableBody").innerHTML =
-    `<tr><td colspan="6" style="text-align:center;color:#89c4e8;padding:20px">Cargando...</td></tr>`;
 
-  let fbData = {};
-  try {
-    const res = await fetch(`${FB_URL}/usadas.json`);
-    fbData = await res.json() || {};
-  } catch(e) {
-    gsLog(`Admin load error: ${e.message}`, "#f44");
-  }
 
-  const rows = [];
-  let totalWon = 0;
-  Object.entries(fbData).forEach(([pathKey, record]) => {
-    if (!record || !record.status) return;
-    // Convert path key back to display key (replace _ with -)
-    const clave = pathKey.slice(0,4) + "-" + pathKey.slice(4).replace("_","");
-    rows.push({ clave, ...record });
-    if (record.result === "ganadora") totalWon++;
-  });
-
-  const totalUsed   = rows.length;
-  const totalPrizes = totalGlobalStock();
-
-  document.getElementById("adminStats").innerHTML = `
-    <div class="admin-stat-card"><div class="val">${totalUsed}</div><div class="lbl">Claves usadas</div></div>
-    <div class="admin-stat-card"><div class="val">${totalWon}</div><div class="lbl">Premios ganados</div></div>
-    <div class="admin-stat-card"><div class="val">${totalPrizes}</div><div class="lbl">Stock restante</div></div>
-    <div class="admin-stat-card"><div class="val">${DEFAULT_BRANCHES.length}</div><div class="lbl">Sucursales</div></div>
-  `;
-
-  const tbody = document.getElementById("adminTableBody");
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#89c4e8;padding:20px">Aún no hay participaciones registradas</td></tr>';
-    return;
-  }
-  tbody.innerHTML = rows.map(r => `
-    <tr>
-      <td style="font-family:monospace;color:#0A92D3">${r.clave}</td>
-      <td>${r.branch || "—"}</td>
-      <td>$${r.amount || "—"}</td>
-      <td>${r.result === "ganadora" ? "✅ Ganó" : "❌ Falló"}</td>
-      <td>${r.prize || "—"}</td>
-      <td style="font-size:10px">${r.ticket || "—"}</td>
-    </tr>`).join("");
-}
 
 function rebuildKey(sucId, amount, seq) {
   // Inverse of codecDecode
@@ -3802,155 +3690,8 @@ function rebuildKey(sucId, amount, seq) {
   return raw;
 }
 
-// ── Excel download (SheetJS via CDN) ─────────────────────────────────────────
-function downloadAdminExcel() {
-  const btn = document.getElementById("adminDlBtn");
-  btn.textContent = "Generando...";
-  btn.disabled = true;
 
-  // Lazy-load SheetJS
-  if (typeof XLSX === "undefined") {
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-    s.onload = () => _buildAndDownload(btn);
-    document.head.appendChild(s);
-  } else {
-    _buildAndDownload(btn);
-  }
-}
 
-async function _buildAndDownload(btn) {
-  btn.textContent = "Descargando de Firebase...";
-
-  let fbData = {};
-  try {
-    const res = await fetch(`${FB_URL}/usadas.json`);
-    fbData = await res.json() || {};
-  } catch(e) { gsLog(`Download error: ${e.message}`, "#f44"); }
-
-  const usedMap = {};
-  Object.entries(fbData).forEach(([pathKey, record]) => {
-    if (record) usedMap[pathKey] = record;
-  });
-
-  const wb = XLSX.utils.book_new();
-  const rows = [["Clave Única","ID Sucursal","Sucursal","Monto ($)","Consecutivo","Estado","Resultado","Premio Asignado","Ticket","Fecha Uso"]];
-
-  DEFAULT_BRANCHES.forEach(branch => {
-    const sucId = parseInt(branch.id.replace("suc",""));
-    [600,1200].forEach(amount => {
-      for (let seq = 1; seq <= 240; seq++) {
-        const key    = rebuildKey(sucId, amount, seq);
-        const path   = key.replace(/-/g,"_");
-        const record = usedMap[path];
-        rows.push([
-          key, sucId, branch.name, amount, seq,
-          record ? "usada" : "disponible",
-          record?.result  || "",
-          record?.prize   || "",
-          record?.ticket  || "",
-          record?.fecha   || ""
-        ]);
-      }
-    });
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws["!cols"] = [16,12,26,11,13,13,14,22,22,16].map(w => ({wch:w}));
-  XLSX.utils.book_append_sheet(wb, ws, "BD Claves");
-
-  const sumRows = [["ID","Sucursal","Usadas $600","Usadas $1200","Total Usadas","Termos","Playera","Rompe","Hielera","Balón","Máscara","Stock restante"]];
-  DEFAULT_BRANCHES.forEach(branch => {
-    const sucId = parseInt(branch.id.replace("suc",""));
-    let u600=0, u1200=0;
-    Object.values(usedMap).forEach(r => {
-      if (String(r.sucId) === String(sucId)) {
-        if (String(r.amount)==="600") u600++;
-        else if (String(r.amount)==="1200") u1200++;
-      }
-    });
-    const inv = getBranchInventory(branch);
-    sumRows.push([sucId, branch.name, u600, u1200, u600+u1200,
-      inv.termos||0, inv.playera||0, inv.rompe||0, inv.hielera||0, inv.balon||0, inv.mascara||0,
-      totalBranchStock(branch)]);
-  });
-  const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
-  ws2["!cols"] = [8,26,13,13,13,11,11,11,11,11,11,14].map(w=>({wch:w}));
-  XLSX.utils.book_append_sheet(wb, ws2, "Resumen por Sucursal");
-
-  XLSX.writeFile(wb, "BD_AquaChampions_2026.xlsx");
-  btn.textContent = "⬇ Descargar BD completa (.xlsx)";
-  btn.disabled = false;
-}
-
-// ── Inventario Excel con termos ────────────────────────────────────────────
-const EXCEL_INVENTORY = {"suc118": {"termos": 60, "playera": 38, "rompe": 38, "hielera": 124, "balon": 36, "mascara": 24}, "suc173": {"termos": 43, "playera": 27, "rompe": 27, "hielera": 86, "balon": 26, "mascara": 17}, "suc165": {"termos": 25, "playera": 16, "rompe": 16, "hielera": 51, "balon": 15, "mascara": 10}, "suc111": {"termos": 39, "playera": 25, "rompe": 25, "hielera": 78, "balon": 23, "mascara": 16}, "suc117": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 56, "balon": 17, "mascara": 11}, "suc101": {"termos": 34, "playera": 22, "rompe": 22, "hielera": 68, "balon": 20, "mascara": 14}, "suc175": {"termos": 31, "playera": 20, "rompe": 20, "hielera": 62, "balon": 18, "mascara": 12}, "suc168": {"termos": 32, "playera": 20, "rompe": 20, "hielera": 63, "balon": 19, "mascara": 13}, "suc136": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 56, "balon": 17, "mascara": 11}, "suc161": {"termos": 35, "playera": 22, "rompe": 22, "hielera": 69, "balon": 21, "mascara": 14}, "suc74": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 54, "balon": 16, "mascara": 11}, "suc79": {"termos": 36, "playera": 23, "rompe": 23, "hielera": 72, "balon": 22, "mascara": 14}, "suc96": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc44": {"termos": 38, "playera": 24, "rompe": 24, "hielera": 76, "balon": 23, "mascara": 15}, "suc3": {"termos": 34, "playera": 21, "rompe": 21, "hielera": 67, "balon": 20, "mascara": 13}, "suc94": {"termos": 24, "playera": 15, "rompe": 15, "hielera": 48, "balon": 15, "mascara": 10}, "suc162": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 54, "balon": 16, "mascara": 11}, "suc113": {"termos": 32, "playera": 20, "rompe": 20, "hielera": 63, "balon": 19, "mascara": 13}, "suc97": {"termos": 40, "playera": 26, "rompe": 26, "hielera": 80, "balon": 24, "mascara": 16}, "suc39": {"termos": 55, "playera": 35, "rompe": 35, "hielera": 110, "balon": 33, "mascara": 22}, "suc4": {"termos": 55, "playera": 35, "rompe": 35, "hielera": 110, "balon": 33, "mascara": 22}, "suc132": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc16": {"termos": 30, "playera": 19, "rompe": 19, "hielera": 60, "balon": 18, "mascara": 12}, "suc68": {"termos": 43, "playera": 28, "rompe": 28, "hielera": 87, "balon": 26, "mascara": 17}, "suc11": {"termos": 25, "playera": 16, "rompe": 16, "hielera": 51, "balon": 15, "mascara": 10}, "suc50": {"termos": 26, "playera": 16, "rompe": 16, "hielera": 51, "balon": 15, "mascara": 10}, "suc70": {"termos": 47, "playera": 30, "rompe": 30, "hielera": 95, "balon": 28, "mascara": 19}, "suc105": {"termos": 38, "playera": 24, "rompe": 24, "hielera": 77, "balon": 23, "mascara": 15}, "suc125": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 57, "balon": 17, "mascara": 11}, "suc80": {"termos": 21, "playera": 13, "rompe": 13, "hielera": 42, "balon": 13, "mascara": 8}, "suc75": {"termos": 49, "playera": 32, "rompe": 32, "hielera": 99, "balon": 30, "mascara": 20}, "suc138": {"termos": 39, "playera": 25, "rompe": 25, "hielera": 77, "balon": 23, "mascara": 16}, "suc189": {"termos": 24, "playera": 15, "rompe": 15, "hielera": 48, "balon": 14, "mascara": 10}, "suc176": {"termos": 60, "playera": 38, "rompe": 38, "hielera": 124, "balon": 36, "mascara": 24}, "suc73": {"termos": 36, "playera": 23, "rompe": 23, "hielera": 73, "balon": 22, "mascara": 15}, "suc193": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc26": {"termos": 18, "playera": 11, "rompe": 11, "hielera": 35, "balon": 11, "mascara": 7}, "suc72": {"termos": 39, "playera": 25, "rompe": 25, "hielera": 79, "balon": 24, "mascara": 16}, "suc104": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 54, "balon": 16, "mascara": 11}, "suc53": {"termos": 22, "playera": 14, "rompe": 14, "hielera": 43, "balon": 13, "mascara": 9}, "suc89": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc148": {"termos": 26, "playera": 17, "rompe": 17, "hielera": 52, "balon": 16, "mascara": 10}, "suc145": {"termos": 55, "playera": 35, "rompe": 35, "hielera": 111, "balon": 33, "mascara": 22}, "suc150": {"termos": 51, "playera": 33, "rompe": 33, "hielera": 100, "balon": 31, "mascara": 20}, "suc47": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc10": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 56, "balon": 17, "mascara": 11}, "suc133": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc174": {"termos": 55, "playera": 35, "rompe": 35, "hielera": 110, "balon": 33, "mascara": 22}, "suc102": {"termos": 46, "playera": 29, "rompe": 29, "hielera": 92, "balon": 28, "mascara": 18}, "suc83": {"termos": 48, "playera": 31, "rompe": 31, "hielera": 96, "balon": 29, "mascara": 19}, "suc185": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc7": {"termos": 24, "playera": 16, "rompe": 16, "hielera": 49, "balon": 15, "mascara": 10}, "suc151": {"termos": 25, "playera": 16, "rompe": 16, "hielera": 50, "balon": 15, "mascara": 10}, "suc109": {"termos": 32, "playera": 21, "rompe": 21, "hielera": 65, "balon": 19, "mascara": 13}, "suc30": {"termos": 48, "playera": 31, "rompe": 31, "hielera": 97, "balon": 29, "mascara": 19}, "suc45": {"termos": 24, "playera": 15, "rompe": 15, "hielera": 47, "balon": 14, "mascara": 9}, "suc164": {"termos": 32, "playera": 20, "rompe": 20, "hielera": 64, "balon": 19, "mascara": 13}, "suc61": {"termos": 30, "playera": 19, "rompe": 19, "hielera": 61, "balon": 18, "mascara": 12}, "suc100": {"termos": 19, "playera": 12, "rompe": 12, "hielera": 38, "balon": 12, "mascara": 8}, "suc127": {"termos": 40, "playera": 25, "rompe": 25, "hielera": 80, "balon": 24, "mascara": 16}, "suc42": {"termos": 19, "playera": 12, "rompe": 12, "hielera": 38, "balon": 11, "mascara": 8}, "suc122": {"termos": 51, "playera": 33, "rompe": 33, "hielera": 100, "balon": 31, "mascara": 21}, "suc139": {"termos": 44, "playera": 28, "rompe": 28, "hielera": 88, "balon": 26, "mascara": 18}, "suc181": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc160": {"termos": 48, "playera": 31, "rompe": 31, "hielera": 96, "balon": 29, "mascara": 19}, "suc92": {"termos": 23, "playera": 15, "rompe": 15, "hielera": 46, "balon": 14, "mascara": 9}, "suc103": {"termos": 31, "playera": 20, "rompe": 20, "hielera": 62, "balon": 19, "mascara": 12}, "suc179": {"termos": 34, "playera": 21, "rompe": 21, "hielera": 67, "balon": 20, "mascara": 13}, "suc65": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 57, "balon": 17, "mascara": 11}, "suc190": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc88": {"termos": 37, "playera": 23, "rompe": 23, "hielera": 73, "balon": 22, "mascara": 15}, "suc195": {"termos": 22, "playera": 14, "rompe": 14, "hielera": 44, "balon": 13, "mascara": 9}, "suc24": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc131": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc147": {"termos": 21, "playera": 13, "rompe": 13, "hielera": 41, "balon": 12, "mascara": 8}, "suc34": {"termos": 43, "playera": 27, "rompe": 27, "hielera": 86, "balon": 26, "mascara": 17}, "suc9": {"termos": 25, "playera": 16, "rompe": 16, "hielera": 50, "balon": 15, "mascara": 10}, "suc60": {"termos": 36, "playera": 23, "rompe": 23, "hielera": 71, "balon": 21, "mascara": 14}, "suc123": {"termos": 51, "playera": 33, "rompe": 33, "hielera": 100, "balon": 31, "mascara": 20}, "suc130": {"termos": 26, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc87": {"termos": 32, "playera": 20, "rompe": 20, "hielera": 63, "balon": 19, "mascara": 13}, "suc84": {"termos": 26, "playera": 17, "rompe": 17, "hielera": 52, "balon": 16, "mascara": 10}, "suc155": {"termos": 18, "playera": 11, "rompe": 11, "hielera": 35, "balon": 11, "mascara": 7}, "suc140": {"termos": 39, "playera": 25, "rompe": 25, "hielera": 78, "balon": 24, "mascara": 16}, "suc27": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc59": {"termos": 51, "playera": 32, "rompe": 32, "hielera": 100, "balon": 30, "mascara": 20}, "suc167": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc51": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc85": {"termos": 31, "playera": 20, "rompe": 20, "hielera": 62, "balon": 18, "mascara": 12}, "suc153": {"termos": 23, "playera": 15, "rompe": 15, "hielera": 46, "balon": 14, "mascara": 9}, "suc36": {"termos": 35, "playera": 22, "rompe": 22, "hielera": 70, "balon": 21, "mascara": 14}, "suc25": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc149": {"termos": 50, "playera": 32, "rompe": 32, "hielera": 100, "balon": 30, "mascara": 20}, "suc121": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc192": {"termos": 20, "playera": 13, "rompe": 13, "hielera": 40, "balon": 12, "mascara": 8}, "suc158": {"termos": 30, "playera": 19, "rompe": 19, "hielera": 61, "balon": 18, "mascara": 12}, "suc166": {"termos": 24, "playera": 16, "rompe": 16, "hielera": 49, "balon": 15, "mascara": 10}, "suc5": {"termos": 24, "playera": 15, "rompe": 15, "hielera": 48, "balon": 14, "mascara": 10}, "suc0": {"termos": 31, "playera": 20, "rompe": 20, "hielera": 62, "balon": 19, "mascara": 12}, "suc106": {"termos": 37, "playera": 24, "rompe": 24, "hielera": 74, "balon": 22, "mascara": 15}, "suc46": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc169": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc177": {"termos": 21, "playera": 13, "rompe": 13, "hielera": 42, "balon": 12, "mascara": 8}, "suc135": {"termos": 24, "playera": 15, "rompe": 15, "hielera": 49, "balon": 15, "mascara": 10}, "suc58": {"termos": 38, "playera": 25, "rompe": 25, "hielera": 77, "balon": 23, "mascara": 15}, "suc57": {"termos": 50, "playera": 32, "rompe": 32, "hielera": 100, "balon": 30, "mascara": 20}, "suc17": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc8": {"termos": 23, "playera": 14, "rompe": 14, "hielera": 45, "balon": 14, "mascara": 9}, "suc134": {"termos": 18, "playera": 11, "rompe": 11, "hielera": 36, "balon": 11, "mascara": 7}, "suc157": {"termos": 36, "playera": 23, "rompe": 23, "hielera": 72, "balon": 22, "mascara": 14}, "suc81": {"termos": 19, "playera": 12, "rompe": 12, "hielera": 38, "balon": 11, "mascara": 8}, "suc172": {"termos": 34, "playera": 22, "rompe": 22, "hielera": 68, "balon": 20, "mascara": 14}, "suc163": {"termos": 32, "playera": 20, "rompe": 20, "hielera": 64, "balon": 19, "mascara": 13}, "suc38": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc76": {"termos": 29, "playera": 19, "rompe": 19, "hielera": 58, "balon": 17, "mascara": 12}, "suc14": {"termos": 23, "playera": 15, "rompe": 15, "hielera": 46, "balon": 14, "mascara": 9}, "suc78": {"termos": 24, "playera": 15, "rompe": 15, "hielera": 48, "balon": 14, "mascara": 10}, "suc141": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 55, "balon": 16, "mascara": 11}, "suc182": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc107": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 56, "balon": 17, "mascara": 11}, "suc159": {"termos": 39, "playera": 25, "rompe": 25, "hielera": 79, "balon": 24, "mascara": 16}, "suc112": {"termos": 22, "playera": 14, "rompe": 14, "hielera": 45, "balon": 13, "mascara": 9}, "suc184": {"termos": 21, "playera": 13, "rompe": 13, "hielera": 41, "balon": 12, "mascara": 8}, "suc116": {"termos": 30, "playera": 19, "rompe": 19, "hielera": 61, "balon": 18, "mascara": 12}, "suc43": {"termos": 25, "playera": 16, "rompe": 16, "hielera": 49, "balon": 15, "mascara": 10}, "suc191": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc95": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc19": {"termos": 31, "playera": 20, "rompe": 20, "hielera": 62, "balon": 19, "mascara": 12}, "suc37": {"termos": 20, "playera": 12, "rompe": 12, "hielera": 39, "balon": 12, "mascara": 8}, "suc48": {"termos": 42, "playera": 27, "rompe": 27, "hielera": 84, "balon": 25, "mascara": 17}, "suc23": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc49": {"termos": 33, "playera": 21, "rompe": 21, "hielera": 67, "balon": 20, "mascara": 13}, "suc144": {"termos": 18, "playera": 11, "rompe": 11, "hielera": 36, "balon": 11, "mascara": 7}, "suc115": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 54, "balon": 16, "mascara": 11}, "suc62": {"termos": 40, "playera": 25, "rompe": 25, "hielera": 79, "balon": 24, "mascara": 16}, "suc91": {"termos": 42, "playera": 27, "rompe": 27, "hielera": 84, "balon": 25, "mascara": 17}, "suc63": {"termos": 26, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc6": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc64": {"termos": 39, "playera": 25, "rompe": 25, "hielera": 77, "balon": 23, "mascara": 15}, "suc52": {"termos": 19, "playera": 12, "rompe": 12, "hielera": 38, "balon": 11, "mascara": 8}, "suc119": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc22": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc152": {"termos": 50, "playera": 32, "rompe": 32, "hielera": 100, "balon": 30, "mascara": 20}, "suc29": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc120": {"termos": 26, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc129": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 57, "balon": 17, "mascara": 11}, "suc186": {"termos": 18, "playera": 12, "rompe": 12, "hielera": 36, "balon": 11, "mascara": 7}, "suc18": {"termos": 19, "playera": 12, "rompe": 12, "hielera": 38, "balon": 11, "mascara": 8}, "suc143": {"termos": 25, "playera": 16, "rompe": 16, "hielera": 50, "balon": 15, "mascara": 10}, "suc35": {"termos": 40, "playera": 26, "rompe": 26, "hielera": 80, "balon": 24, "mascara": 16}, "suc156": {"termos": 21, "playera": 13, "rompe": 13, "hielera": 42, "balon": 13, "mascara": 8}, "suc170": {"termos": 23, "playera": 15, "rompe": 15, "hielera": 46, "balon": 14, "mascara": 9}, "suc66": {"termos": 32, "playera": 21, "rompe": 21, "hielera": 65, "balon": 19, "mascara": 13}, "suc142": {"termos": 33, "playera": 21, "rompe": 21, "hielera": 66, "balon": 20, "mascara": 13}, "suc154": {"termos": 28, "playera": 18, "rompe": 18, "hielera": 55, "balon": 17, "mascara": 11}, "suc13": {"termos": 19, "playera": 12, "rompe": 12, "hielera": 37, "balon": 11, "mascara": 7}, "suc99": {"termos": 29, "playera": 19, "rompe": 19, "hielera": 58, "balon": 18, "mascara": 12}, "suc146": {"termos": 46, "playera": 29, "rompe": 29, "hielera": 91, "balon": 27, "mascara": 18}, "suc93": {"termos": 30, "playera": 19, "rompe": 19, "hielera": 60, "balon": 18, "mascara": 12}, "suc137": {"termos": 15, "playera": 10, "rompe": 10, "hielera": 30, "balon": 9, "mascara": 6}, "suc55": {"termos": 36, "playera": 23, "rompe": 23, "hielera": 72, "balon": 22, "mascara": 14}, "suc126": {"termos": 19, "playera": 12, "rompe": 12, "hielera": 38, "balon": 11, "mascara": 8}, "suc171": {"termos": 22, "playera": 14, "rompe": 14, "hielera": 44, "balon": 13, "mascara": 9}, "suc178": {"termos": 27, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc114": {"termos": 24, "playera": 15, "rompe": 15, "hielera": 48, "balon": 14, "mascara": 10}, "suc180": {"termos": 26, "playera": 17, "rompe": 17, "hielera": 53, "balon": 16, "mascara": 11}, "suc188": {"termos": 18, "playera": 12, "rompe": 12, "hielera": 36, "balon": 11, "mascara": 7}, "suc124": {"termos": 31, "playera": 20, "rompe": 20, "hielera": 61, "balon": 18, "mascara": 12}, "suc128": {"termos": 40, "playera": 26, "rompe": 26, "hielera": 80, "balon": 24, "mascara": 16}, "suc54": {"termos": 31, "playera": 20, "rompe": 20, "hielera": 61, "balon": 18, "mascara": 12}};
-
-async function syncInventarioExcel() {
-  const btn = document.getElementById("adminSyncInvBtn");
-  btn.textContent = "⏳ Subiendo...";
-  btn.disabled = true;
-  try {
-    const res = await fetch(`${FB_URL}/inventario.json`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(EXCEL_INVENTORY)
-    });
-    if (res.ok) {
-      btn.textContent = "✅ ¡Inventario actualizado!";
-      btn.style.background = "linear-gradient(90deg,#0A92D3,#0b7bb5)";
-      gsLog("Inventario Excel subido a Firebase OK", "#8f8");
-      const local = getStorageData();
-      Object.entries(EXCEL_INVENTORY).forEach(([id, inv]) => {
-        if (!local[id]) local[id] = {};
-        local[id].inventory = inv;
-      });
-      saveBranchInventories(local);
-      state._storageCache = null;
-    } else {
-      btn.textContent = "❌ Error al subir";
-      btn.disabled = false;
-    }
-  } catch(e) {
-    btn.textContent = "❌ Error: " + e.message;
-    btn.disabled = false;
-  }
-}
-
-async function resetUsadas() {
-  if (!confirm("¿Seguro que deseas borrar TODAS las claves usadas y restaurar el inventario completo? Esta acción no se puede deshacer.")) return;
-  const btn = document.getElementById("adminResetUsadasBtn");
-  btn.textContent = "⏳ Reiniciando...";
-  btn.disabled = true;
-  try {
-    // 1. Borrar claves usadas en Firebase
-    await fetch(`${FB_URL}/usadas.json`, { method: "DELETE" });
-
-    // 2. Restaurar inventario completo en Firebase desde EXCEL_INVENTORY
-    const resInv = await fetch(`${FB_URL}/inventario.json`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(EXCEL_INVENTORY)
-    });
-
-    // 3. Limpiar localStorage — claves usadas E inventario
-    const local = getStorageData();
-    Object.keys(local).forEach(k => {
-      if (local[k].usedCodes)  delete local[k].usedCodes;
-      if (local[k].inventory)  delete local[k].inventory;  // se recargará desde Excel
-    });
-    saveBranchInventories(local);
-    state._storageCache = null;
-
-    btn.textContent = "✅ Reiniciado completo";
-    btn.style.background = "linear-gradient(90deg,#0A92D3,#0b7bb5)";
-    gsLog("Claves y inventario reiniciados OK", "#8f8");
-    renderAdminContent();
-  } catch(e) {
-    btn.textContent = "❌ Error: " + e.message;
-    btn.disabled = false;
-  }
-}
 
 </script>
 
