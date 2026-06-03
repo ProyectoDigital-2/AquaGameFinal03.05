@@ -1414,6 +1414,13 @@ async function _syncToFirebase(sucId, amount, seq, result) {
     });
     const data = await res.json();
     gsLog(`Firebase sync: ${key} → ${data?.status || "ok"}`, "#8f8");
+
+    // Marcar usada:true en /claves/ para que Aquamatic lo vea
+    await fetch(`${FB_URL}/claves/${path}/usada.json`, {
+      method:  "PUT",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify(true)
+    });
   } catch(e) {
     gsLog(`Firebase sync error: ${e.message}`, "#f44");
   }
