@@ -1546,8 +1546,9 @@ async function assignPromoPrize() {
   // MODO PRUEBA — inventario ficticio, sin tocar Firebase ni inventario real
   if (state._isTestMode) {
     const testInv = { termos: 99, playera: 99, rompe: 99, hielera: 99, balon: 99, mascara: 99 };
-    const fakeBranch = { ...branch, _testInv: testInv };
-    const prizeKey = choosePromoPrize({ ...fakeBranch, id: "_test" }, recharge);
+    // Pasar inventario ficticio directo — evitar que getBranchInventory busque por id
+    const fakeBranch = { ...branch, id: "_test", inventory: testInv };
+    const prizeKey = choosePromoPrize(fakeBranch, recharge);
     state.promoAward       = { key: prizeKey || "termos", label: PROMO_PRIZES[prizeKey || "termos"].label, branch: branch.name + " [PRUEBA]", rechargeAmount: recharge.amount };
     state.promoOutcomeLabel = `[PRUEBA] Ganaste ${state.promoAward.label}.`;
     gsLog("[TEST MODE] Premio asignado: " + state.promoAward.label + " — sin descuento de inventario", "#ff0");
