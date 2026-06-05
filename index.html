@@ -1392,6 +1392,11 @@ function _markCodeUsedLocally(sucId, amount, seq, result) {
 }
 
 async function _syncToFirebase(sucId, amount, seq, result) {
+  // MODO PRUEBA — no escribir nada en Firebase
+  if (state._isTestMode) {
+    gsLog("[TEST MODE] _syncToFirebase omitido — no se escribe en Firebase", "#ff0");
+    return;
+  }
   const branch = getBranchById(sucId);
   const key    = rebuildKey(sucId, amount, seq);
   const path   = keyToPath(key);
@@ -1433,9 +1438,25 @@ function getSelectedBranch() {
 }
 
 // ── Validación de clave con el decodificador ───────────────────────────────────
+// ── Claves de prueba — no consumen inventario ni Firebase ───────────────────
+const TEST_KEYS = {
+  "TEST600": { sucId: 118, amount: 600,  seq: 0 },
+  "TEST1200": { sucId: 118, amount: 1200, seq: 0 },
+};
+
 async function validatePromoAccess() {
   const entered = state.branchAccessCode.trim().toUpperCase();
   if (!entered) return null;
+
+  // Modo prueba — clave especial
+  if (TEST_KEYS[entered]) {
+    const { sucId, amount, seq } = TEST_KEYS[entered];
+    const branch = getBranchById(sucId);
+    state._isTestMode = true;
+    return { branch, decoded: { sucId, amount, seq }, entry: { amount, seq, used: false, result: null }, invalid: null };
+  }
+  state._isTestMode = false;
+
   const decoded = codecDecode(entered);
   if (!decoded) return { invalid: "format" };
   const { sucId, amount, seq } = decoded;
@@ -1482,6 +1503,29 @@ function buildPromoTicket() {
 
 function choosePromoPrize(branch, recharge) {
   const inv = getBranchInventory(branch);
+
+  // Para $1200: primero intentar solo con premios premium (balon, playera, rompe)
+  // Si no hay inventario de esos, caer a los premios del grupo $600
+  if (recharge.amount === 1200) {
+    const PREMIUM = ["balon", "playera", "rompe"];
+    const premiumEntries = PREMIUM
+      .map(key => ({ key, weight: recharge.weights[key] || 1, stock: inv[key] || 0 }))
+      .filter(item => item.stock > 0);
+
+    if (premiumEntries.length > 0) {
+      // Hay premios premium disponibles — elegir solo de esos
+      const total = premiumEntries.reduce((s, e) => s + e.weight, 0);
+      let cursor = Math.random() * total;
+      for (const item of premiumEntries) {
+        cursor -= item.weight;
+        if (cursor <= 0) return item.key;
+      }
+      return premiumEntries[premiumEntries.length - 1].key;
+    }
+    // Sin premium disponible — caer al pool general (igual que $600)
+  }
+
+  // Pool general (todos los premios con stock)
   const entries = Object.entries(recharge.weights)
     .map(([key, weight]) => ({ key, weight, stock: inv[key] || 0 }))
     .filter(item => item.stock > 0 && item.weight > 0);
@@ -1498,6 +1542,17 @@ function choosePromoPrize(branch, recharge) {
 async function assignPromoPrize() {
   const branch   = getSelectedBranch();
   const recharge = getRechargeConfig();
+
+  // MODO PRUEBA — inventario ficticio, sin tocar Firebase ni inventario real
+  if (state._isTestMode) {
+    const testInv = { termos: 99, playera: 99, rompe: 99, hielera: 99, balon: 99, mascara: 99 };
+    const fakeBranch = { ...branch, _testInv: testInv };
+    const prizeKey = choosePromoPrize({ ...fakeBranch, id: "_test" }, recharge);
+    state.promoAward       = { key: prizeKey || "termos", label: PROMO_PRIZES[prizeKey || "termos"].label, branch: branch.name + " [PRUEBA]", rechargeAmount: recharge.amount };
+    state.promoOutcomeLabel = `[PRUEBA] Ganaste ${state.promoAward.label}.`;
+    gsLog("[TEST MODE] Premio asignado: " + state.promoAward.label + " — sin descuento de inventario", "#ff0");
+    return;
+  }
 
   // 1. Leer inventario FRESCO de Firebase para elegir premio con stock real
   await _reloadBranchInventoryFromFirebase(branch.id);
