@@ -971,7 +971,7 @@ function codecDecode(raw) {
   return { sucId, amount, seq };
 }
 const PROMO_RECHARGES = [
-  { amount: 600,  label: "$600",  goalProbability: 0.82, weights: { hielera: 1, termos: 1, mascara: 1 } },
+  { amount: 600,  label: "$600",  goalProbability: 0.82, weights: { hielera: 1, termos: 1, mascara: 1, balon: 1, playera: 1, rompe: 1 } },
   { amount: 1200, label: "$1200", goalProbability: 0.92, weights: { hielera: 1, termos: 1, mascara: 1, balon: 1, playera: 1, rompe: 1 } }
 ];
 const PROMO_PRIZES = {
@@ -1504,28 +1504,7 @@ function buildPromoTicket() {
 function choosePromoPrize(branch, recharge) {
   const inv = getBranchInventory(branch);
 
-  // Para $1200: primero intentar solo con premios premium (balon, playera, rompe)
-  // Si no hay inventario de esos, caer a los premios del grupo $600
-  if (recharge.amount === 1200) {
-    const PREMIUM = ["balon", "playera", "rompe"];
-    const premiumEntries = PREMIUM
-      .map(key => ({ key, weight: recharge.weights[key] || 1, stock: inv[key] || 0 }))
-      .filter(item => item.stock > 0);
-
-    if (premiumEntries.length > 0) {
-      // Hay premios premium disponibles — elegir solo de esos
-      const total = premiumEntries.reduce((s, e) => s + e.weight, 0);
-      let cursor = Math.random() * total;
-      for (const item of premiumEntries) {
-        cursor -= item.weight;
-        if (cursor <= 0) return item.key;
-      }
-      return premiumEntries[premiumEntries.length - 1].key;
-    }
-    // Sin premium disponible — caer al pool general (igual que $600)
-  }
-
-  // Pool general (todos los premios con stock)
+  // Cualquier premio al azar del pool completo con stock
   const entries = Object.entries(recharge.weights)
     .map(([key, weight]) => ({ key, weight, stock: inv[key] || 0 }))
     .filter(item => item.stock > 0 && item.weight > 0);
