@@ -971,8 +971,8 @@ function codecDecode(raw) {
   return { sucId, amount, seq };
 }
 const PROMO_RECHARGES = [
-  { amount: 600,  label: "$600",  goalProbability: 0.82, weights: { hielera: 1, termos: 1, mascara: 1, balon: 1, playera: 1, rompe: 1 } },
-  { amount: 1200, label: "$1200", goalProbability: 0.92, weights: { hielera: 1, termos: 1, mascara: 1, balon: 1, playera: 1, rompe: 1 } }
+  { amount: 600,  label: "$600",  goalProbability: 0.82, weights: { hielera: 10, termos: 1, mascara: 1, playera: 4, rompe: 4 } },
+  { amount: 1200, label: "$1200", goalProbability: 0.92, weights: { hielera: 10, termos: 1, mascara: 1, playera: 4, rompe: 4 } }
 ];
 const PROMO_PRIZES = {
   termos:    { label: "Termos AquaChampions" },
@@ -1525,39 +1525,75 @@ async function assignPromoPrize() {
   // MODO PRUEBA — inventario ficticio, sin tocar Firebase ni inventario real
   if (state._isTestMode) {
     const testInv = { termos: 99, playera: 99, rompe: 99, hielera: 99, balon: 99, mascara: 99 };
-    // Pasar inventario ficticio directo — evitar que getBranchInventory busque por id
     const fakeBranch = { ...branch, id: "_test", inventory: testInv };
-    const prizeKey = choosePromoPrize(fakeBranch, recharge);
-    state.promoAward       = { key: prizeKey || "termos", label: PROMO_PRIZES[prizeKey || "termos"].label, branch: branch.name + " [PRUEBA]", rechargeAmount: recharge.amount };
-    state.promoOutcomeLabel = `[PRUEBA] Ganaste ${state.promoAward.label}.`;
-    gsLog("[TEST MODE] Premio asignado: " + state.promoAward.label + " — sin descuento de inventario", "#ff0");
+    const prizeKey1 = choosePromoPrize(fakeBranch, recharge);
+    const prizeKey2 = choosePromoPrize(fakeBranch, recharge);
+    const prizeLabel = prizeKey2
+      ? `${PROMO_PRIZES[prizeKey1 || "termos"].label} / ${PROMO_PRIZES[prizeKey2].label}`
+      : PROMO_PRIZES[prizeKey1 || "termos"].label;
+    state.promoAward       = { key: prizeKey1 || "termos", key2: prizeKey2 || null, keys: [prizeKey1, prizeKey2].filter(Boolean), label: prizeLabel + " [PRUEBA]", branch: branch.name + " [PRUEBA]", rechargeAmount: recharge.amount };
+    state.promoOutcomeLabel = `[PRUEBA] Ganaste ${prizeLabel}.`;
+    gsLog("[TEST MODE] Premios asignados: " + prizeLabel + " — sin descuento de inventario", "#ff0");
     return;
   }
 
-  // 1. Leer inventario FRESCO de Firebase para elegir premio con stock real
+  // 1. Leer inventario FRESCO de Firebase para elegir premios con stock real
   await _reloadBranchInventoryFromFirebase(branch.id);
-  const prizeKey = choosePromoPrize(branch, recharge);
-  if (!prizeKey) {
+
+  // 2. Elegir PRIMER premio
+  const prizeKey1 = choosePromoPrize(branch, recharge);
+  if (!prizeKey1) {
     state.promoAward       = null;
     state.promoOutcomeLabel = "Anotaste, pero esta sucursal ya no tiene premios disponibles para esta recarga.";
     return;
   }
 
-  // 2. Descontar ATÓMICAMENTE en Firebase: leer valor actual → restar 1 → escribir
-  //    Esto evita race conditions cuando dos usuarios ganan el mismo premio
-  const decremented = await _atomicDecrement(branch.id, prizeKey);
-
-  // 3. Actualizar cache local con el nuevo valor
-  const inv      = getBranchInventory(branch);
-  inv[prizeKey]  = decremented;
-  const localData = getStorageData();
-  if (!localData[branch.id]) localData[branch.id] = {};
-  localData[branch.id].inventory = inv;
-  saveBranchInventories(localData);
+  // 3. Descontar primer premio atómicamente y actualizar cache local
+  const decremented1 = await _atomicDecrement(branch.id, prizeKey1);
+  const inv1 = getBranchInventory(branch);
+  inv1[prizeKey1] = decremented1;
+  const localData1 = getStorageData();
+  if (!localData1[branch.id]) localData1[branch.id] = {};
+  localData1[branch.id].inventory = inv1;
+  saveBranchInventories(localData1);
   state._storageCache = null;
 
-  state.promoAward       = { key: prizeKey, label: PROMO_PRIZES[prizeKey].label, branch: branch.name, rechargeAmount: recharge.amount };
-  state.promoOutcomeLabel = `Ganaste ${PROMO_PRIZES[prizeKey].label}.`;
+  // 4. Elegir SEGUNDO premio (con inventario ya actualizado)
+  const prizeKey2 = choosePromoPrize(branch, recharge);
+
+  let prizeLabel, prizeKeys;
+  if (prizeKey2 && prizeKey2 !== prizeKey1) {
+    // Dos premios diferentes — descontar el segundo
+    const decremented2 = await _atomicDecrement(branch.id, prizeKey2);
+    const inv2 = getBranchInventory(branch);
+    inv2[prizeKey2] = decremented2;
+    const localData2 = getStorageData();
+    if (!localData2[branch.id]) localData2[branch.id] = {};
+    localData2[branch.id].inventory = inv2;
+    saveBranchInventories(localData2);
+    state._storageCache = null;
+    prizeLabel = `${PROMO_PRIZES[prizeKey1].label} / ${PROMO_PRIZES[prizeKey2].label}`;
+    prizeKeys  = [prizeKey1, prizeKey2];
+  } else if (prizeKey2 && prizeKey2 === prizeKey1) {
+    // Mismo premio dos veces — descontar una más
+    const decremented2 = await _atomicDecrement(branch.id, prizeKey2);
+    const inv2 = getBranchInventory(branch);
+    inv2[prizeKey2] = decremented2;
+    const localData2 = getStorageData();
+    if (!localData2[branch.id]) localData2[branch.id] = {};
+    localData2[branch.id].inventory = inv2;
+    saveBranchInventories(localData2);
+    state._storageCache = null;
+    prizeLabel = `${PROMO_PRIZES[prizeKey1].label} x2`;
+    prizeKeys  = [prizeKey1, prizeKey2];
+  } else {
+    // Solo hay stock para 1 premio
+    prizeLabel = PROMO_PRIZES[prizeKey1].label;
+    prizeKeys  = [prizeKey1];
+  }
+
+  state.promoAward       = { key: prizeKey1, key2: prizeKeys[1] || null, keys: prizeKeys, label: prizeLabel, branch: branch.name, rechargeAmount: recharge.amount };
+  state.promoOutcomeLabel = `Ganaste ${prizeLabel}.`;
 }
 
 // Lee el valor actual de UN campo desde Firebase, resta 1 y lo escribe de vuelta
@@ -3573,10 +3609,12 @@ function showPrizeModal(winnerPrizeKey, branchName, rechargeAmount) {
   const btn     = document.getElementById("prizeConfirmBtn");
   const group   = PRIZE_GROUPS[winnerPrizeKey] || { family: [winnerPrizeKey], labels: [PROMO_PRIZES[winnerPrizeKey]?.label || winnerPrizeKey] };
 
-  // Image (use the first family member's image as reference image)
-  img.src = PRIZE_IMAGES[group.family[0]] || PRIZE_IMAGES[winnerPrizeKey] || "";
+  // Mostrar ambos premios si hay 2
+  const award = state.promoAward;
+  const prizeTitle = award?.label || PROMO_PRIZES[winnerPrizeKey]?.label || winnerPrizeKey;
 
-  title.textContent = PROMO_PRIZES[winnerPrizeKey]?.label || winnerPrizeKey;
+  img.src = PRIZE_IMAGES[group.family[0]] || PRIZE_IMAGES[winnerPrizeKey] || "";
+  title.textContent = prizeTitle;
   sub.textContent   = `${branchName} · Recarga $${rechargeAmount}`;
 
   _prizeSelectedKey = group.family.length === 1 ? group.family[0] : null;
