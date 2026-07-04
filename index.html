@@ -3609,10 +3609,25 @@ function showPrizeModal(winnerPrizeKey, branchName, rechargeAmount, winnerPrizeK
   const btn     = document.getElementById("prizeConfirmBtn");
   const group   = PRIZE_GROUPS[winnerPrizeKey] || { family: [winnerPrizeKey], labels: [PROMO_PRIZES[winnerPrizeKey]?.label || winnerPrizeKey] };
 
-  // Mostrar ambos premios si hay 2
   const award = state.promoAward;
+  const hasTwoPrizes = winnerPrizeKey2 != null;
   title.textContent = award?.label || PROMO_PRIZES[winnerPrizeKey]?.label || winnerPrizeKey;
   sub.textContent   = `${branchName} · Recarga $${rechargeAmount}`;
+
+  // Badge de 2 premios
+  let badgeEl = document.getElementById("prizeDualBadge");
+  if (hasTwoPrizes) {
+    if (!badgeEl) {
+      badgeEl = document.createElement("div");
+      badgeEl.id = "prizeDualBadge";
+      badgeEl.style.cssText = "font-size:15px;font-weight:900;color:#fff;background:linear-gradient(135deg,#ff8c00,#ff5500);border-radius:20px;padding:6px 16px;margin-bottom:10px;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.3);box-shadow:0 0 12px rgba(255,120,0,.5);";
+      title.parentNode.insertBefore(badgeEl, title);
+    }
+    badgeEl.textContent = "🎉 ¡Ganaste 2 premios!";
+    badgeEl.style.display = "";
+  } else {
+    if (badgeEl) badgeEl.style.display = "none";
+  }
 
   // Mostrar 1 o 2 imágenes según los premios
   if (winnerPrizeKey2 && winnerPrizeKey2 !== winnerPrizeKey) {
