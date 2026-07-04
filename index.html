@@ -2419,7 +2419,7 @@ function finishMatch() {
       state.promoAccessEntry = null;
       updateHud();
       // Show prize modal with image + color choice
-      showPrizeModal(state.promoAward.key, branch.name, state.rechargeAmount);
+      showPrizeModal(state.promoAward.key, branch.name, state.rechargeAmount, state.promoAward.key2);
       return;
     } else if (state.promoScored) {
       if (restartBtn) restartBtn.classList.add("hidden");
@@ -3599,7 +3599,7 @@ const PRIZE_GROUPS = {
 
 let _prizeSelectedKey = null;
 
-function showPrizeModal(winnerPrizeKey, branchName, rechargeAmount) {
+function showPrizeModal(winnerPrizeKey, branchName, rechargeAmount, winnerPrizeKey2) {
   const modal   = document.getElementById("prizeModal");
   const img     = document.getElementById("prizeModalImg");
   const title   = document.getElementById("prizeModalTitle");
@@ -3611,11 +3611,49 @@ function showPrizeModal(winnerPrizeKey, branchName, rechargeAmount) {
 
   // Mostrar ambos premios si hay 2
   const award = state.promoAward;
-  const prizeTitle = award?.label || PROMO_PRIZES[winnerPrizeKey]?.label || winnerPrizeKey;
-
-  img.src = PRIZE_IMAGES[group.family[0]] || PRIZE_IMAGES[winnerPrizeKey] || "";
-  title.textContent = prizeTitle;
+  title.textContent = award?.label || PROMO_PRIZES[winnerPrizeKey]?.label || winnerPrizeKey;
   sub.textContent   = `${branchName} · Recarga $${rechargeAmount}`;
+
+  // Mostrar 1 o 2 imágenes según los premios
+  if (winnerPrizeKey2 && winnerPrizeKey2 !== winnerPrizeKey) {
+    // Dos premios DIFERENTES — mostrar dos imágenes lado a lado
+    img.style.display = "none";
+    let dualImgs = document.getElementById("prizeImgDual");
+    if (!dualImgs) {
+      dualImgs = document.createElement("div");
+      dualImgs.id = "prizeImgDual";
+      dualImgs.style.cssText = "display:flex;gap:8px;justify-content:center;margin-bottom:16px;";
+      img.parentNode.insertBefore(dualImgs, img);
+    }
+    dualImgs.style.display = "flex";
+    const img1Key = PRIZE_GROUPS[winnerPrizeKey]?.family[0] || winnerPrizeKey;
+    const img2Key = PRIZE_GROUPS[winnerPrizeKey2]?.family[0] || winnerPrizeKey2;
+    dualImgs.innerHTML = `
+      <div style="flex:1;text-align:center;">
+        <img src="${PRIZE_IMAGES[img1Key]||""}" style="width:100%;max-height:140px;object-fit:contain;border-radius:12px;border:2px solid rgba(69,181,240,.4);">
+        <div style="font-size:11px;color:#89c4e8;margin-top:4px;">${PROMO_PRIZES[winnerPrizeKey]?.label||winnerPrizeKey}</div>
+      </div>
+      <div style="flex:1;text-align:center;">
+        <img src="${PRIZE_IMAGES[img2Key]||""}" style="width:100%;max-height:140px;object-fit:contain;border-radius:12px;border:2px solid rgba(69,181,240,.4);">
+        <div style="font-size:11px;color:#89c4e8;margin-top:4px;">${PROMO_PRIZES[winnerPrizeKey2]?.label||winnerPrizeKey2}</div>
+      </div>`;
+  } else {
+    // Un solo premio (o mismo x2) — imagen única
+    let dualImgs = document.getElementById("prizeImgDual");
+    if (dualImgs) dualImgs.style.display = "none";
+    img.style.display = "";
+    if (winnerPrizeKey2 && winnerPrizeKey2 === winnerPrizeKey) {
+      // Mismo premio x2 — badge encima de la imagen
+      img.src = PRIZE_IMAGES[group.family[0]] || PRIZE_IMAGES[winnerPrizeKey] || "";
+      lbl.textContent = "🎉 ¡Ganaste 2 unidades de este premio!";
+      optWrap.innerHTML = "";
+      btn.disabled = false;
+      btn.onclick = () => confirmPrize();
+      modal.classList.remove("hidden");
+      return;
+    }
+    img.src = PRIZE_IMAGES[group.family[0]] || PRIZE_IMAGES[winnerPrizeKey] || "";
+  }
 
   _prizeSelectedKey = group.family.length === 1 ? group.family[0] : null;
 
@@ -3627,11 +3665,9 @@ function showPrizeModal(winnerPrizeKey, branchName, rechargeAmount) {
       </button>`).join("");
     btn.disabled = true;
   } else {
-    lbl.textContent = "";
+    lbl.textContent = winnerPrizeKey2 ? "" : "";
     optWrap.innerHTML = "";
     btn.disabled = false;
-    // Update image to the exact key
-    img.src = PRIZE_IMAGES[group.family[0]] || "";
   }
 
   btn.onclick = () => confirmPrize();
